@@ -6,7 +6,8 @@
 | `classify.py` | Applies the rules, extracts sizes, estimates kg/unit, checks quantities |
 | `vocabulary.csv` | The controlled item list: standard English name, CN code, weight method, multilingual match patterns. **Edit this to change behaviour.** |
 | `overrides.csv` | Exact description → item_id (and optional kg) for one-offs and corrections. Applied before the rules. |
-| `comext_unit_weights.py` | Reads Eurostat Comext `.dat` files → median kg per supplementary unit and EUR per kg by CN8 |
+| `comext_unit_weights.py` | Reads Eurostat Comext `.dat` files → median kg per supplementary unit, the unit itself, and EUR per kg by CN8 |
+| `comext_metadata/` | Eurostat `CN8-SUPPL_UNIT.txt`, `SUPPL_UNIT.txt`, `CN.txt` (bulk download, `comext/COMEXT_METADATA/CLASSIFICATIONS_AND_RELATIONS/`) |
 | `codes_nfi.csv` | The CN codes used in the vocabulary, ready for the Comext script |
 | `build_ceda_long.py` | Reshapes the Open CEDA workbook into long tables (`ceda_*.csv`) |
 | `ceda_ef_long.csv`, `ceda_regional_ef_long.csv`, `ceda_sectors.csv`, `ceda_countries.csv` | Open CEDA 2025 in long format (also as `OpenCEDA_2025_long.xlsx`) |
@@ -17,9 +18,26 @@
 pip install pandas duckdb
 python comext_unit_weights.py "full_v2_2025*.dat" --codes codes_nfi.csv --out unit_weights.csv
 python build_ceda_long.py Open_CEDA_2025_updated_2025-11-12.xlsx   # only when CEDA changes
-python classify.py NFI_Categorisations.csv --comext unit_weights.csv
+python classify.py NFI_Categorisations.csv --comext unit_weights.csv --usd_to_eur 0.8629
 ```
 Without `--comext` the classifier still runs; Comext-method items just stay blank.
+`--usd_to_eur` is EUR per USD for the Comext period (0.8629 = 1 / 1.15888, the mean of ECB daily
+USD/EUR reference rates 2 Jan - 15 Oct 2026; the 2026 annual average is not yet published).
+
+### Comext unit matching (`comext_route` and `kg_basis`)
+The NFI Quantity is taken to be pieces. Only CN8 codes under the item's CN code that carry the
+dominant supplementary unit are used.
+| Supplementary unit | Route | kg per NFI unit |
+|---|---|---|
+| p/st (`PST`) | `COMEXT_PST` | Comext median kg/unit |
+| pa (`PA`) | `COMEXT_PA` | kg per pair; footwear/gloves rows not described as pairs get `PAIR_QTY_CHECK` |
+| 100 / 1000 p/st | `COMEXT_100_PST` / `COMEXT_1000_PST` | median / 100 or / 1000 |
+| m, m2, m3, l | `COMEXT_CONVERTED` | median x `length_m`, `area_m2`, `volume_l`/1000 or `volume_l` parsed from the description; not applied without a size |
+| none (kg only), or a unit with no size (incl. `CEEL`) | `PRICE_PROXY` | unit price x usd_to_eur / Comext EUR per kg |
+
+`COMEXT_PRICE_MISMATCH`: WFP price per kg (after FX) is outside 0.2-5x Comext EUR per kg for the same
+CN8 codes (`comext_price_ratio`). It usually means the wrong CN8 within the 6-digit code or a
+quantity-unit mismatch. Not computed for the price proxy (ratio 1 by construction).
 
 ## How it works
 1. **No language detection, no free translation.** Each item in `vocabulary.csv` carries
@@ -81,6 +99,7 @@ Without `--comext` the classifier still runs; Comext-method items just stay blan
 | | Parametric, stated size x published rate | 0.75 |
 | | Catalogue, type assumed / engineering standard / quantity-in-kg inference | 0.70 |
 | | Comext median kg/unit (0.40 if p75/p25 > 3) | 0.60 |
+| | Comext kg per m / m2 / m3 / L x size from description (0.40 if p75/p25 > 3) | 0.50 |
 | | Unqualified Estimate / Comext price proxy | 0.30 |
 | | No weight yet | 0 |
 | Quantification (services: sector fit) | Sector describes the service exactly | 0.90 |

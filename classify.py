@@ -196,7 +196,8 @@ DS = {                          # quantification: how good the kg/unit (goods) o
     "QTY_IN_KG": 0.7,           # quantity inferred to be in kg from price
     "OVERRIDE_KG": 0.8,         # weight entered by a reviewer
     "COMEXT_MEDIAN": 0.6,       # Comext median kg per supplementary unit (0.4 if p75/p25 > 3)
-    "COMEXT_WIDE": 0.4,
+    "COMEXT_CONVERTED": 0.5,    # Comext median per m / m2 / m3 / L x size parsed from the description
+    "COMEXT_WIDE": 0.4,         # (applies to converted values too when p75/p25 > 3)
     "UNQUALIFIED": 0.3,         # Unqualified Estimate
     "PRICE_PROXY": 0.3,         # unit price / Comext EUR per kg
 }
@@ -313,22 +314,79 @@ def main():
         look.append(rec)
     lk = pd.DataFrame(look)
 
-    # ---- optional Comext join: (1) kg per supplementary unit, (2) EUR per kg for a price proxy
+    # ---- optional Comext join: (1) kg per supplementary unit, matched to the unit the NFI
+    # quantity is in (assumed pieces), (2) EUR per kg for a price proxy
     eur_per_kg = {}
+    for c in ("supp_unit", "comext_route", "comext_cn8", "comext_p25", "comext_p75", "comext_eur_per_kg"):
+        lk[c] = None
     if args.comext:
         cx = pd.read_csv(args.comext, dtype={"cn8": str})
-        def cx_stat(cn, col):
-            if not cn or col not in cx:
-                return None
-            sub = cx[cx.cn8.str.startswith(str(cn))][col].dropna()
-            return None if sub.empty else float(sub.median())
-        miss = lk.kg_per_unit.isna() & (lk.weight_method == "COMEXT")
-        lk.loc[miss, "kg_per_unit"] = lk.loc[miss, "cn"].map(lambda c: cx_stat(c, "median_kg_per_unit"))
-        got = miss & lk.kg_per_unit.notna()
-        lk.loc[got, "kg_basis"] = "Comext median kg/unit, CN " + lk.loc[got, "cn"].astype(str)
-        spread = lk.loc[got, "cn"].map(lambda c: (cx_stat(c, "p75") or 0) / (cx_stat(c, "p25") or 1e-9))
-        lk.loc[got, "data_score"] = [DS["COMEXT_WIDE"] if x > 3 else DS["COMEXT_MEDIAN"] for x in spread]
-        eur_per_kg = {c: cx_stat(c, "eur_per_kg") for c in lk.cn.dropna().unique()}
+        if "supp_unit" not in cx:
+            raise SystemExit(f"{args.comext} has no supp_unit column: rerun comext_unit_weights.py")
+
+        def cx_pick(cn):
+            """CN8 rows under this code that carry a supplementary unit, restricted to the
+            unit most of them use. Returns (unit, rows) or (None, rows with no unit)."""
+            sub = cx[cx.cn8.str.startswith(str(cn))] if cn else cx.iloc[0:0]
+            su = sub[(sub.supp_unit != "NO_SU") & sub.median_kg_per_unit.notna()]
+            if su.empty:
+                return None, sub
+            unit = su.groupby("supp_unit").n_records.sum().idxmax()
+            return unit, su[su.supp_unit == unit]
+
+        def attrs_of(s):
+            return dict(kv.split("=", 1) for kv in str(s).split("; ") if "=" in kv)
+
+        for i in lk.index:
+            cn = lk.at[i, "cn"]
+            if not cn or pd.isna(cn):
+                continue
+            unit, sub = cx_pick(cn)
+            if unit is None:
+                lk.at[i, "supp_unit"] = "NO_SU" if not sub.empty else None
+                continue
+            lk.at[i, "supp_unit"] = unit
+            lk.at[i, "comext_cn8"] = " ".join(sub.cn8)
+            med, p25, p75 = (float(sub[c].median()) for c in ("median_kg_per_unit", "p25", "p75"))
+            lk.at[i, "comext_p25"], lk.at[i, "comext_p75"] = p25, p75
+            lk.at[i, "comext_eur_per_kg"] = float(sub.eur_per_kg.median())
+            # any goods row still without a weight (COMEXT items, and parametric items whose
+            # description gave no size) gets the unit-matched Comext value before the price proxy
+            if not (pd.isna(lk.at[i, "kg_per_unit"]) and lk.at[i, "scope"] in ("GOODS", "KIT")):
+                continue
+            wide = p25 > 0 and p75 / p25 > 3
+            src = f"CN {cn} ({len(sub)} CN8 in {unit})"
+            a = attrs_of(lk.at[i, "attributes"])
+            per = {"100_PST": 100, "1000_PST": 1000}
+            size = {"M": ("length_m", 1, "m"), "M2": ("area_m2", 1, "m2"),
+                    "L": ("volume_l", 1, "L"), "M3": ("volume_l", 0.001, "m3")}
+            if unit in ("PST", "PA") or unit in per:
+                div = per.get(unit, 1)
+                kg = med / div
+                route = {"PST": "COMEXT_PST", "PA": "COMEXT_PA"}.get(unit, f"COMEXT_{unit}")
+                what = {"PST": "kg per piece", "PA": "kg per pair"}.get(unit, f"kg per {div} pieces / {div}")
+                basis, score = f"Comext median {what} [{route}], {src}", DS["COMEXT_WIDE" if wide else "COMEXT_MEDIAN"]
+            elif unit in size and size[unit][0] in a:
+                key, f, lab = size[unit]
+                qty = float(a[key]) * f
+                kg = med * qty
+                route = "COMEXT_CONVERTED"
+                basis = (f"Comext median {med:g} kg/{lab} x {qty:g} {lab} from description "
+                         f"[{route}, {unit}], {src}")
+                score = DS["COMEXT_WIDE"] if wide else DS["COMEXT_CONVERTED"]
+            else:
+                # unit needs a size the description does not give (or is not a count, e.g.
+                # CEEL): do not apply; the row-level price proxy is used instead
+                lk.at[i, "comext_route"] = f"NOT_APPLIED_{unit}"
+                continue
+            lk.at[i, "kg_per_unit"], lk.at[i, "kg_basis"] = round(kg, 4), basis
+            lk.at[i, "data_score"], lk.at[i, "comext_route"] = score, route
+        eur_per_kg = {}
+        for c in lk.cn.dropna().unique():
+            sub = cx[cx.cn8.str.startswith(str(c))].eur_per_kg.dropna() if c else []
+            eur_per_kg[c] = float(sub.median()) if len(sub) else None
+        # EUR/kg of the same CN8 subset the kg/unit came from, else of the whole code
+        lk["comext_eur_per_kg"] = lk.comext_eur_per_kg.where(lk.comext_eur_per_kg.notna(), lk.cn.map(eur_per_kg))
 
     # ---- row level
     out = df.merge(lk, on="Detailed_Description", how="left")
@@ -343,14 +401,26 @@ def main():
         ok = proxy.notna() & (proxy > 0)
         idx = proxy[ok].index
         out.loc[idx, "kg_per_unit"] = proxy[ok].round(3)
-        out.loc[idx, "kg_basis"] = "price proxy: unit price / Comext EUR per kg, CN " + out.loc[idx, "cn"].astype(str)
+        why = out.loc[idx, "comext_route"].fillna("").str.replace("NOT_APPLIED_", "no size for ", regex=False)
+        why = why.where(why != "", out.loc[idx, "supp_unit"].fillna("NO_SU").replace({"NO_SU": "kg only"}))
+        out.loc[idx, "kg_basis"] = ("price proxy: unit price x " + f"{args.usd_to_eur:g}" + " / Comext EUR per kg [PRICE_PROXY, "
+                                    + why + "], CN " + out.loc[idx, "cn"].astype(str))
         out.loc[idx, "data_score"] = DS["PRICE_PROXY"]
+        out.loc[idx, "comext_route"] = "PRICE_PROXY"
 
     # bulk materials: a 'unit' price far below one bag means the quantity was recorded in kg
     bulk = out["item_id"].isin(BULK_KG_ITEMS) & (out["unit_price_usd"] < 1.5)
     out.loc[bulk, "kg_per_unit"] = 1.0
     out.loc[bulk, "kg_basis"] = "quantity is in kg (unit price too low for a bag)"
     out.loc[bulk, "data_score"] = DS["QTY_IN_KG"]
+    out.loc[bulk, "comext_route"] = None
+
+    # Comext price check: WFP price per kg (after FX) vs Comext EUR per kg for the same CN8s.
+    # Not meaningful for the price proxy, which equals Comext EUR/kg by construction.
+    cx_rows = out["kg_basis"].astype(str).str.startswith("Comext")
+    wfp_eur_kg = out["unit_price_usd"] * args.usd_to_eur / out["kg_per_unit"]
+    out["comext_price_ratio"] = (wfp_eur_kg / pd.to_numeric(out["comext_eur_per_kg"])).where(cx_rows).round(2)
+    PAIR_WORDS = re.compile(r"\b(pairs?|prs?|paires?|pares?|par)\b")
 
     # quantity sanity check: compare price per kg (or per unit) with the item's own median
     basis = out["unit_price_usd"] / out["kg_per_unit"]
@@ -370,6 +440,11 @@ def main():
             f.append("QTY_UNIT_SUSPECT")
         if goods and r["Quantity"] % 1 != 0:
             f.append("QTY_NOT_INTEGER")   # usually m2, m or kg rather than pieces
+        cr = r["comext_price_ratio"]
+        if pd.notna(cr) and (cr > 5 or cr < 0.2):
+            f.append("COMEXT_PRICE_MISMATCH")   # wrong CN8 within the code, or a unit mismatch
+        if r["comext_route"] == "COMEXT_PA" and not PAIR_WORDS.search(str(r["desc_norm"])):
+            f.append("PAIR_QTY_CHECK")          # kg is per pair; qty may be single items
         if r["item_id"] == "UNMATCHED":
             f.append("UNMATCHED")
         if r["item_id"].startswith("KIT_OTHER") or r["item_id"] in ("TENT", "BUILDING_MISC"):
@@ -488,7 +563,8 @@ def main():
     cols = ["Material_Group_Description", "Detailed_Description", "item_std", "item_en", "item_id",
             "group", "scope", "emissions_approach", "cn", "ceda_code", "ceda_target",
             "ceda_ef_kgco2e_per_usd", "ceda_ef_geography", "spend_kgco2e", "weight_method",
-            "kg_per_unit", "kg_basis", "confidence_score", "confidence_band", "confidence_basis",
+            "kg_per_unit", "kg_basis", "supp_unit", "comext_route", "comext_cn8", "comext_p25", "comext_p75",
+            "comext_eur_per_kg", "comext_price_ratio", "confidence_score", "confidence_band", "confidence_basis",
             "Quantity", "Goods_Receipt_Value_USD", "unit_price_usd", "price_ratio_vs_item_median",
             "flags", "units_est", "units_basis", "total_kg_est", "attributes", "match", "matched_text",
             "Supplier_Country_Name", "Material_Group_Category", "Material_Group_Class",
@@ -499,8 +575,15 @@ def main():
         rows=("Quantity", "size"), qty=("Quantity", "sum"), value_usd=("Goods_Receipt_Value_USD", "sum"),
         mg=("Material_Group_Description", "first"),
         emissions_approach=("emissions_approach", lambda s: s.mode().iat[0]),
-        confidence_score_median=("confidence_score", "median")).reset_index().merge(
-        lk.drop(columns=["data_score", "ceda_fit"]), on="Detailed_Description")
+        confidence_score_median=("confidence_score", "median"),
+        kg_per_unit=("kg_per_unit", "median"),
+        kg_basis=("kg_basis", lambda s: s.mode().iat[0] if s.notna().any() else ""),
+        comext_route=("comext_route", lambda s: s.mode().iat[0] if s.notna().any() else ""),
+        comext_price_ratio=("comext_price_ratio", "median"),
+        flags=("flags", lambda s: "|".join(sorted({f for x in s.fillna("") for f in x.split("|") if f}))),
+    ).reset_index().merge(
+        lk.drop(columns=["data_score", "ceda_fit", "kg_per_unit", "kg_basis", "comext_route"]),
+        on="Detailed_Description")
     lk2.sort_values("value_usd", ascending=False).to_csv(f"{args.prefix}_lookup.csv", index=False)
 
     summ = out.groupby(["scope", "group", "item_id", "item_en", "emissions_approach", "cn", "ceda_code",

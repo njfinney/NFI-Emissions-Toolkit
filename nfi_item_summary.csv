@@ -1,0 +1,202 @@
+scope,group,item_id,item_en,emissions_approach,cn,ceda_code,ceda_target,rows,value_usd,units_est,total_kg_est,kg_per_unit_median,spend_kgco2e,confidence_score_median
+GOODS,Shelter,TARPAULIN,Tarpaulin,Average Data (Research Derived),630612,314900,Other textile product mills,321,9699286.0,550266.7,2871644.2,4.2,4336615.4,68.0
+GOODS,Shelter,TENT_FAMILY,Family tent,Average Data (Research Derived),630622,314900,Other textile product mills,94,9443610.0,24491.0,1518442.0,62.0,3653865.3,59.0
+KIT,Kits,KIT_HYGIENE,Hygiene kit,Average Data (Research Derived),,325620,Toilet preparation manufacturing,88,4815584.0,193678.5,1936785.0,10.0,2547185.9,27.0
+WORKS,Services,SVC_WORKS_REPAIR,Building repair / rehabilitation works,Spend-based (OpenCEDA),,230301,Nonresidential maintenance and repair,319,3768982.0,322.0,0.0,,4762374.4,68.0
+WORKS,Services,SVC_WORKS_NEW,Building construction works,Spend-based (OpenCEDA),,233262,Educational and vocational structures,28,2257778.0,134.0,0.0,,1039777.0,68.0
+KIT,Kits,KIT_SHELTER_TOOL,Shelter toolkit,Average Data (Research Derived),,332200,Cutlery and handtool manufacturing,58,1897608.0,74845.3,823298.3,11.0,670052.6,76.0
+KIT,Kits,KIT_WINTER,Winterization kit (tent),Average Data (Research Derived),,314900,Other textile product mills,16,1730037.0,8959.0,268770.0,30.0,599160.7,59.0
+KIT,Kits,KIT_SHELTER,Shelter kit (cover/repair),Average Data (Research Derived),,314900,Other textile product mills,10,1502855.0,42042.0,504504.0,12.0,322212.3,63.0
+GOODS,Bedding,BLANKET_HT,Blanket (high thermal),Average Data (Research Derived),630140,314120,Curtain and linen mills,39,1219405.0,186670.0,373340.0,2.0,380071.7,81.0
+KIT,Kits,KIT_FAMILY,Family kit (household),Spend-based (OpenCEDA),,339990,All other miscellaneous manufacturing,5,1136625.0,19240.0,0.0,,744314.9,45.0
+KIT,Kits,KIT_RRT,Rapid response team individual kit,Spend-based (OpenCEDA),,339920,Sporting and athletic goods manufacturing,41,1031922.0,838.6,0.0,,186339.1,45.0
+GOODS,Construction,TILES,Ceramic tiles,Average Data (COMEXT),690721,327100,Clay product and refractory manufacturing,34,938220.0,67384.0,1175010.4,17.646,667805.0,27.0
+GOODS,Bedding,BLANKET_MT,Blanket (medium thermal),Average Data (Research Derived),630140,314120,Curtain and linen mills,32,894013.0,219350.0,350960.0,1.6,322410.0,81.0
+GOODS,Kitchen,STOVE,Cooking stove (solid fuel),Average Data (COMEXT),732119,335221,Household cooking appliance manufacturing,10,749333.0,4687.7,71502.5,15.2532,581658.8,36.0
+GOODS,Bedding,MOSQUITO_NET,Mosquito net,Average Data (Research Derived),630491,314900,Other textile product mills,68,640119.0,251876.0,125938.0,0.5,249142.1,27.0
+GOODS,Shelter,TENT,Tent (unspecified),Average Data (COMEXT),630622,314900,Other textile product mills,47,479574.0,4364.7,47640.0,56.345,130451.0,18.0
+GOODS,Kitchen,COOKING_POT,Cooking pot / pan,Average Data (COMEXT),732393,332200,Cutlery and handtool manufacturing,51,466290.0,19447.0,26098.9,1.665,223204.0,27.0
+KIT,Kits,KIT_KITCHEN,Kitchen set,Average Data (Research Derived),,332200,Cutlery and handtool manufacturing,25,443124.0,20090.0,100450.0,5.0,351925.9,81.0
+GOODS,Agri equipment,MILL,Grain mill / decorticator,Average Data (COMEXT),843780,33329A,Other industrial machinery manufacturing,10,436742.0,286.0,37502.799999999996,114.936,222088.6,27.0
+GOODS,Electronics,MET_INSTRUMENT,Weather / measuring instrument,Average Data (COMEXT),901580,33451A,"Watch, clock, and other measuring and controlling device manufacturing",44,432786.0,680.0,905.5,0.9299999999999999,162467.6,27.0
+GOODS,Kitchen,PLATE,Plate / bowl,Average Data (COMEXT),392410,326190,Other plastics product manufacturing,30,421543.0,880077.6,15386587.799999999,0.354,174054.0,27.0
+GOODS,Kitchen,STOVE_INSTITUTIONAL,Institutional stove (school),Average Data (COMEXT),732119,335221,Household cooking appliance manufacturing,10,406344.0,3192.2,48691.2,15.2532,185694.8,36.0
+GOODS,Construction,ROOF_SHEET,Corrugated roofing sheet,Average Data (COMEXT),721041,332320,Ornamental and architectural metal products manufacturing,15,380538.0,105921.0,155384.1,1.551,443342.9,27.0
+GOODS,Shelter,TARP_FUMIGATION,Fumigation sheet,Average Data (Research Derived),630612,314900,Other textile product mills,19,361898.0,631.0,61570.0,90.0,205436.3,26.0
+GOODS,Energy,GENERATOR,Generator,Average Data (COMEXT),850212,335312,Motor and generator manufacturing,7,348037.0,16.0,34238.5,2139.9091,190426.6,54.0
+GOODS,Construction,WINDOW,Window,Average Data (COMEXT),441810,321910,Millwork,20,347400.0,7522.4,0.0,,243562.4,0.0
+GOODS,Construction,DOOR,Door,Average Data (COMEXT),441820,321910,Millwork,25,311590.0,10669.4,0.0,,217083.2,0.0
+GOODS,Shelter,TENT_CLASSROOM,Large tent (multipurpose/classroom),Average Data (COMEXT),630622,314900,Other textile product mills,24,306044.0,316.0,15328.1,42.0135,68806.5,26.0
+GOODS,Shelter,PLASTIC_SHEET,Plastic sheeting / film,Average Data (COMEXT),392010,326110,Plastics packaging materials and unlaminated film and sheet manufacturing,15,304513.0,6553.0,77582.2,31.321,305483.6,27.0
+GOODS,Energy,GENERATOR,Generator,Average Data (COMEXT),850213,335312,Motor and generator manufacturing,1,287950.0,2.0,22696.7,11348.3333,177269.1,54.0
+GOODS,Furniture,TABLE,Table,Average Data (COMEXT),940360,337127,Institutional furniture manufacturing,29,261044.0,2367.0,83644.6,48.063,151155.6,27.0
+GOODS,Kitchen,FOOD_TRAY,Food tray,Average Data (COMEXT),392410,326190,Other plastics product manufacturing,11,254012.0,122898.0,35807.9,0.352,195800.59999999998,27.0
+SERVICE,Services,SVC_FREIGHT_ROAD,Road freight / delivery,Spend-based (OpenCEDA),,484000,Truck transportation,88,248753.0,89.0,0.0,,156727.9,59.0
+GOODS,Construction,BUILDING_MISC,Other building material,Spend-based (OpenCEDA),,327999,Miscellaneous nonmetallic mineral products,11,246770.0,7595.1,0.0,,206308.49999999997,24.0
+GOODS,Logistics equipment,SACK,Woven sack / bag,Average Data (COMEXT),630533,314900,Other textile product mills,29,234017.0,883463.0,90725.0,0.269,87422.4,27.0
+GOODS,Furniture,SHELF,Shelf / cabinet,Average Data (COMEXT),940360,337215,"Showcase, partition, shelving, and locker manufacturing",17,215615.0,1070.0,69087.4,60.72,122736.8,27.0
+GOODS,Logistics equipment,CONTAINER_SHIPPING,Shipping container,Average Data (Research Derived),860900,332430,"Metal can, box, and other metal container (light gauge) manufacturing",37,204559.0,97.0,213400.0,2200.0,190716.9,63.0
+GOODS,Logistics equipment,SILO,Storage silo,Average Data (COMEXT),730900,332420,Metal tank (heavy gauge) manufacturing,2,201745.0,2255.0,24170.899999999998,11.807,103915.3,27.0
+GOODS,Energy,SOLAR_LANTERN,Solar lamp / lantern,Average Data (COMEXT),851310,335120,Lighting fixture manufacturing,18,188100.0,17562.0,3690.8,0.297,63003.0,27.0
+GOODS,School furniture,DESK,School desk / bench,Average Data (COMEXT),940360,337127,Institutional furniture manufacturing,6,187841.0,5249.0,60187.99999999999,14.257,98336.2,27.0
+GOODS,Water,BASIN,Basin / wash basin,Average Data (COMEXT),732393,326190,Other plastics product manufacturing,27,180171.0,42975.3,43472135.1,0.307,109189.7,27.0
+GOODS,Water,WATER_FILTER,Water filter / purification,Average Data (COMEXT),842121,333318,Other commercial and service industry machinery manufacturing,12,179783.0,1188.1,371488.5,5.1545000000000005,93961.4,27.0
+SERVICE,Services,SVC_FREIGHT_UNSPEC,Freight (mode not stated),Spend-based (OpenCEDA),,484000,Truck transportation,16,173071.0,248.0,0.0,,174901.4,42.0
+GOODS,Logistics equipment,FLOORING_MODULAR,Modular plastic flooring,Average Data (COMEXT),391890,326190,Other plastics product manufacturing,2,159106.0,2.0,14054.8,7027.366,104438.8,28.0
+GOODS,Shelter,TARP_FUMIGATION,Fumigation sheet,Average Data (COMEXT),630612,314900,Other textile product mills,7,156824.0,159.0,6924.5,45.246,58210.1,26.0
+GOODS,Crafts,THREAD,Thread / yarn,Average Data (Research Derived),540110,313100,"Fiber, yarn, and thread mills",16,153647.0,2762.0,6264.400000000001,2.268,85508.0,90.0
+GOODS,Kitchen,FREEZER,Freezer / refrigerator,Average Data (COMEXT),841830,335222,Household refrigerator and home freezer manufacturing,20,145207.0,429.1,24592.2,57.3121,136909.8,54.0
+GOODS,Tools,HAND_TOOL_OTHER,Hand tool,Average Data (COMEXT),820559,332200,Cutlery and handtool manufacturing,78,143848.0,7752.0,5079.3,1.847,58209.2,27.0
+GOODS,School supplies,PAPER,Paper (reams),Average Data (COMEXT),480256,322120,Paper mills,11,142019.0,3356.0,112429.5,17.812,53895.8,27.0
+GOODS,Construction,TILE_ADHESIVE,Tile adhesive / grout,Average Data (Research Derived),321490,325520,Adhesive manufacturing,17,141660.0,436411.0,436411.0,1.0,102673.0,59.0
+GOODS,Logistics equipment,PALLET_PLASTIC,Plastic pallet,Average Data (COMEXT),392390,326190,Other plastics product manufacturing,9,141077.0,4438.0,27604.9,5.244,51087.700000000004,27.0
+GOODS,Consumables,CLEANING,Cleaning product,Average Data (COMEXT),340250,325610,Soap and cleaning compound manufacturing,45,140141.0,263280.9,1600001.0999999999,0.699,60452.0,27.0
+GOODS,Water,BUCKET,Bucket,Average Data (COMEXT),392490,326190,Other plastics product manufacturing,27,136474.0,44695.0,27636.6,0.759,55929.5,27.0
+GOODS,Construction,PAINT,Paint,Average Data (COMEXT),320910,325510,Paint and coating manufacturing,45,134518.0,99738.6,2009299.2,0.748,72600.0,27.0
+GOODS,Kitchen,UTENSIL,Kitchen utensil,Average Data (COMEXT),821599,332200,Cutlery and handtool manufacturing,73,133801.0,878945.8,610288.2,0.141,49491.5,27.0
+GOODS,Construction,CEMENT,Cement,Average Data (Research Derived),252329,327310,Cement manufacturing,21,131752.0,692990.0,971310.0,1.0,788276.2999999999,63.0
+GOODS,Construction,GEOMEMBRANE,Geomembrane,Average Data (COMEXT),392010,326110,Plastics packaging materials and unlaminated film and sheet manufacturing,1,129731.0,17.0,33051.4,1944.198,77784.8,27.0
+GOODS,Logistics equipment,SCALE,Weighing scale,Average Data (COMEXT),842382,33399A,Other general purpose machinery manufacturing,31,108548.0,1844.1,9220.5,5.0,49949.7,36.0
+GOODS,Kitchen,OVEN,Oven,Average Data (COMEXT),841981,333318,Other commercial and service industry machinery manufacturing,20,107372.0,736.9,34344.5,62.198,93081.4,27.0
+GOODS,Kitchen,STOVE_HEATER,Heater stove (tent),Average Data (COMEXT),732189,333414,Heating equipment (except warm air furnaces) manufacturing,6,105019.0,639.0,48492.200000000004,75.8876,67295.5,34.0
+GOODS,Plumbing,SINK,Sink / hand-washing station,Average Data (COMEXT),691010,327100,Clay product and refractory manufacturing,14,103744.0,2885.0,29961.8,18.3485,74969.5,27.0
+GOODS,Bedding,SLEEPING_MAT,Sleeping mat,Average Data (COMEXT),460194,326190,Other plastics product manufacturing,10,100761.0,9030.0,33467.3,5.811,50276.1,27.0
+GOODS,Bedding,MATTRESS,Mattress,Average Data (COMEXT),940421,337900,Other furniture related product manufacturing,15,98357.0,6292.0,7936.4,1.977,64028.3,27.0
+ADJUSTMENT,Services,SVC_ADJUSTMENT,Contract adjustment (contingency / tax / retention),Unallocated,,,,31,98025.0,31.0,0.0,,0.0,0.0
+GOODS,Crafts,FABRIC,Fabric / cloth,Average Data (COMEXT),520812,313200,Fabric mills,28,96669.0,1875.0,1572.1,0.2455,25376.399999999998,27.0
+GOODS,Furniture,CHAIR,Chair,Average Data (COMEXT),940169,337127,Institutional furniture manufacturing,15,96006.0,4016.0,7430.1,2.322,52962.9,27.0
+SERVICE,Services,SVC_INSTALLATION,Installation / maintenance service,Spend-based (OpenCEDA),,811300,Commercial and industrial machinery and equipment repair and maintenance,12,93624.0,12.0,0.0,,25033.300000000003,42.0
+GOODS,Logistics equipment,PALLET_WOOD,Wooden pallet,Average Data (COMEXT),441520,3219A0,All other wood product manufacturing,9,92073.0,2721.0,53539.4,19.6764,64909.5,54.0
+GOODS,Logistics equipment,STORAGE_BOX,Plastic storage box / crate,Average Data (COMEXT),392310,326190,Other plastics product manufacturing,19,87632.0,42728.0,20587.7,1.981,33784.9,27.0
+GOODS,Kitchen,CUP,Cup / mug,Average Data (COMEXT),392410,326190,Other plastics product manufacturing,26,85726.0,173293.6,8809507.600000001,0.0965,32957.6,27.0
+UNCLEAR,Unclear,UNCLEAR,Unclear - needs PO check,Unallocated,,,,9,85048.0,172.0,0.0,,0.0,0.0
+SERVICE,Services,SVC_RENTAL,Equipment rental (tents / furniture),Spend-based (OpenCEDA),,532A00,General and consumer goods rental,18,79299.0,57.0,0.0,,11732.4,68.0
+GOODS,Bedding,SLEEPING_BAG,Sleeping bag,Average Data (COMEXT),940430,314900,Other textile product mills,20,77875.0,1820.0,2213.8,1.2164,22196.3,54.0
+GOODS,Logistics equipment,ROPE,Rope,Average Data (COMEXT),560749,314900,Other textile product mills,19,77090.0,5188.0,16979.5,4.46,31340.2,27.0
+GOODS,Visibility,SIGNBOARD,Sign / signpost / banner,Average Data (COMEXT),831000,339950,Sign manufacturing,14,74577.0,451.0,3533.3999999999996,6.704,34893.0,27.0
+GOODS,School supplies,EXERCISE_BOOK,Exercise book,Average Data (COMEXT),482020,322230,Stationery product manufacturing,12,74445.0,170546.0,28830.899999999998,0.1765,25563.4,27.0
+KIT,Kits,KIT_OTHER,Other kit,Spend-based (OpenCEDA),,339990,All other miscellaneous manufacturing,13,74429.0,248.0,0.0,,38947.899999999994,18.0
+GOODS,School supplies,REGISTER_BOOK,Register / receipt book,Average Data (COMEXT),482010,322230,Stationery product manufacturing,30,74107.0,13054.0,7457.3,0.4555,36454.9,27.0
+KIT,Kits,KIT_DIGNITY,Dignity kit,Average Data (Research Derived),,325620,Toilet preparation manufacturing,3,73105.0,6500.0,19500.0,3.0,37580.2,27.0
+GOODS,Crafts,THREAD,Thread / yarn,Average Data (COMEXT),540110,313100,"Fiber, yarn, and thread mills",101,69340.0,15373.0,2749.3,0.197,38140.0,27.0
+GOODS,Plumbing,PIPE,Pipe,Average Data (COMEXT),391721,326120,"Plastics pipe, pipe fitting, and unlaminated profile shape manufacturing",78,68696.0,55264.0,13326.7,0.119,59035.0,27.0
+OUT_OF_SCOPE,Out of scope,OOS_PLANTS,Seeds / seedlings / plants,Spend-based (OpenCEDA),,111200,Vegetable and melon farming,38,67707.0,16124.0,0.0,,13025.9,59.0
+GOODS,Construction,DRYWALL,Plasterboard / drywall,Average Data (COMEXT),680911,327400,Lime and gypsum product manufacturing,17,64491.0,9308.9,214643.2,19.101,185735.7,27.0
+OUT_OF_SCOPE,Out of scope,OOS_MED,Medicine / medical consumable,Spend-based (OpenCEDA),3004,325412,Pharmaceutical preparation manufacturing,49,63938.0,7614.0,0.0,,18750.7,59.0
+GOODS,Clothing,FOOTWEAR,Boots / footwear,Average Data (COMEXT),640192,316000,Leather and allied product manufacturing,24,63203.0,9763.0,12153.4,1.2449,10727.900000000001,54.0
+GOODS,Kitchen,THERMOS,Thermos / insulated container,Average Data (COMEXT),961700,326190,Other plastics product manufacturing,16,62155.0,991.0,2633.1,2.7755,40024.5,27.0
+GOODS,Clothing,CLOTHING,Clothing / PPE,Average Data (COMEXT),621142,315000,Apparel manufacturing,35,61417.0,6979.7,5968.8,0.8551,11090.9,36.0
+GOODS,Kitchen,STOVE_ELECTRIC,Electric cooker,Average Data (COMEXT),851660,335221,Household cooking appliance manufacturing,6,60686.0,221.5,3087.1,13.9375,46222.2,36.0
+GOODS,Shelter,TARP_TRUCK,Truck tarpaulin,Average Data (COMEXT),630612,314900,Other textile product mills,8,60380.0,198.0,2666.1,35.809,33551.6,26.0
+GOODS,Energy,GENERATOR,Generator,Average Data (COMEXT),850211,335312,Motor and generator manufacturing,1,60200.0,5.0,2240.9,448.1882,37060.6,36.0
+GOODS,Construction,WIRE_MESH,Wire / wire mesh,Average Data (COMEXT),731449,332600,Spring and wire product manufacturing,18,59430.0,2840.0,8798.4,1.8735,62863.3,27.0
+GOODS,Bedding,BLANKET,Blanket,Average Data (Research Derived),630140,314120,Curtain and linen mills,11,58451.0,5173.400000000001,8277.4,1.6,25750.600000000002,63.0
+GOODS,Agri equipment,AGRI_NET,Agricultural / animal net,Average Data (COMEXT),560890,314900,Other textile product mills,4,52867.0,2412.0,4418.6,1.5194999999999999,11741.800000000001,27.0
+GOODS,Safety,FIRST_AID,First aid kit / medical equipment,Average Data (COMEXT),300650,339113,Surgical appliance and supplies manufacturing,10,52138.0,987.0,1096038.3,2.7125,17744.4,26.0
+GOODS,Crafts,BEADS,Beads,Average Data (COMEXT),701810,327200,Glass and glass product manufacturing,85,49267.0,2500.0,857.9,0.273,20600.5,27.0
+GOODS,Energy,LIGHT_TOWER,Lighting tower,Average Data (COMEXT),940549,335120,Lighting fixture manufacturing,1,48000.0,4.0,799.0,199.757,20398.8,27.0
+GOODS,Electronics,IT_EQUIP,IT equipment,Average Data (COMEXT),847130,334111,Electronic computer manufacturing,9,47566.0,74.0,131.6,1.7757,11081.7,54.0
+GOODS,Plumbing,LATRINE_SLAB,Latrine slab,Average Data (COMEXT),392290,326190,Other plastics product manufacturing,5,47321.0,1600.0,4418.9,2.613,33147.7,27.0
+GOODS,School supplies,STAPLER,Stapler / staples / clips,Average Data (COMEXT),830520,339940,Office supplies (except paper) manufacturing,16,46478.0,8100.0,6830.3,0.9105,19687.8,27.0
+GOODS,Hardware,NAIL,Nails / screws,Average Data (COMEXT),731700,332600,Spring and wire product manufacturing,39,44066.0,43418.0,10951.9,0.35,51945.8,27.0
+GOODS,Tools,HAND_TOOL_SHOVEL,Shovel / spade,Average Data (COMEXT),820110,332200,Cutlery and handtool manufacturing,14,44011.0,15185.0,19423.1,1.2791,23681.8,54.0
+GOODS,Plumbing,PUMP,Pump,Average Data (COMEXT),841370,33399A,Other general purpose machinery manufacturing,7,43216.0,119.0,2340.3,19.6667,19539.399999999998,36.0
+GOODS,Water,WATER_TANK,Water tank,Average Data (COMEXT),392510,326190,Other plastics product manufacturing,15,42292.0,487.1,83750.6,18.91,16900.1,27.0
+GOODS,Consumables,SANITARY_PAD,Sanitary pad,Average Data (COMEXT),961900,322291,Sanitary paper product manufacturing,5,41425.0,988000.0,5385.0,0.012,41885.2,27.0
+SERVICE,Services,SVC_HANDLING,Cargo handling (loading / offloading),Spend-based (OpenCEDA),,48A000,Scenic and sightseeing transportation and support activities for transportation,19,38813.0,20.0,0.0,,14344.9,58.0
+GOODS,Construction,PLASTER,Plaster / gypsum,Average Data (Research Derived),252020,327400,Lime and gypsum product manufacturing,17,38309.0,257020.0,257020.0,1.0,110330.7,63.0
+GOODS,Clothing,APRON,Apron,Average Data (COMEXT),621142,315000,Apparel manufacturing,7,38018.0,7249.0,6198.700000000001,0.8551,7442.4,36.0
+GOODS,Energy,BATTERY,Battery,Average Data (COMEXT),850720,335911,Storage battery manufacturing,9,37795.0,283.0,7411.4,47.062,17170.0,27.0
+GOODS,Kitchen,KITCHEN_APPLIANCE,Small electrical appliance,Average Data (COMEXT),850940,335210,Small electrical appliance manufacturing,18,37129.0,485.0,1917.8000000000002,3.9535,18990.0,36.0
+GOODS,Logistics equipment,VEHICLE,Vehicle / trailer / bicycle,Average Data (COMEXT),8716,336991,"Motorcycle, bicycle, and parts manufacturing",6,33807.0,112.0,310856.0,2775.5,23022.5,36.0
+GOODS,Electrical,ELECTRICAL_ACC,Electrical accessory (socket/switch/breaker),Average Data (COMEXT),853690,335930,Wiring device manufacturing,27,33481.0,1042.0,506.8,0.166,15449.7,27.0
+GOODS,School supplies,PEN,Pen / marker,Average Data (COMEXT),960810,339940,Office supplies (except paper) manufacturing,16,33050.0,5810.5,164.1,0.0282,12917.6,36.0
+OUT_OF_SCOPE,Out of scope,OOS_FOOD,Food / ration item,Spend-based (OpenCEDA),,311990,All other food manufacturing,23,32951.0,1726.0,0.0,,7015.6,51.0
+GOODS,Kitchen,BAKERY_EQUIP,Bakery equipment,Average Data (COMEXT),843810,33329A,Other industrial machinery manufacturing,17,32747.0,252.1,14294.5,49.098,32066.4,27.0
+SERVICE,Services,SVC_PROFESSIONAL,Professional / technical service,Spend-based (OpenCEDA),,5419A0,"All other miscellaneous professional, scientific, and technical services",8,30163.0,483.0,0.0,,4378.2,51.0
+GOODS,Construction,STEEL_SECTION,Steel bar / section,Average Data (COMEXT),7216,331200,Steel product manufacturing from purchased steel,20,30052.0,2825.0,19007.0,12.297,36187.0,27.0
+GOODS,Hardware,PADLOCK,Padlock / lock,Average Data (COMEXT),830110,332500,Hardware manufacturing,14,29494.0,10256.0,836.1,0.094,16620.4,27.0
+GOODS,Energy,SOLAR_PANEL,Solar panel,Average Data (COMEXT),854143,334413,Semiconductor and related device manufacturing,5,28463.0,32.1,88568.0,191.581,12279.5,27.0
+GOODS,Clothing,GLOVES,Gloves,Average Data (COMEXT),621600,315000,Apparel manufacturing,14,28289.0,2862.4,642.7,0.2245,6737.9,36.0
+GOODS,Crafts,CRAFT_OTHER,Craft / tailoring supply,Spend-based (OpenCEDA),,339990,All other miscellaneous manufacturing,44,25663.0,1212.0,0.0,,7977.5,24.0
+GOODS,School furniture,BLACKBOARD,Blackboard / whiteboard / easel,Average Data (COMEXT),961000,339940,Office supplies (except paper) manufacturing,8,24943.0,1258.0,3245.7000000000003,9.4345,10783.7,27.0
+GOODS,Shelter,TENT_MSU,Mobile storage unit / warehouse tent,Average Data (COMEXT),630622,314900,Other textile product mills,1,24434.0,6.0,1223.8,203.959,7491.5,27.0
+SERVICE,Services,SVC_CUSTOMS,Customs clearance / freight forwarding,Spend-based (OpenCEDA),,48A000,Scenic and sightseeing transportation and support activities for transportation,11,24310.0,11.0,0.0,,5600.1,58.0
+GOODS,Water,INCINERATOR,Incinerator,Average Data (COMEXT),841780,333994,Industrial process furnace and oven manufacturing,2,24277.0,2.0,97.6,48.75,12216.5,29.0
+GOODS,Consumables,TOILETRY,Toiletry (toothpaste / shampoo / deodorant),Spend-based (OpenCEDA),,325620,Toilet preparation manufacturing,8,23181.0,26091.0,0.0,,10155.4,54.0
+GOODS,Shelter,TENT_CAMPING,Camping tent (1-3 person),Average Data (COMEXT),630622,314900,Other textile product mills,8,22174.0,100.0,1110.6,11.244,9509.4,27.0
+GOODS,Tools,POWER_TOOL,Power tool,Average Data (COMEXT),846729,333991,Power-driven handtool manufacturing,30,21455.0,85.0,334.7,3.9445,22047.7,54.0
+SERVICE,Services,SVC_FREIGHT_SEA,Sea freight,Spend-based (OpenCEDA),,483000,Water transportation,3,20164.0,3.0,0.0,,26397.2,68.0
+GOODS,Logistics equipment,CARDBOARD_BOX,Cardboard box,Average Data (COMEXT),481910,322210,Paperboard container manufacturing,2,18871.0,2.0,9567.5,4783.7205,10170.2,27.0
+GOODS,School supplies,PENCIL,Pencil / crayon,Average Data (COMEXT),960910,339940,Office supplies (except paper) manufacturing,2,18595.0,280020.0,1400.5,0.015000000000000001,6574.1,27.0
+GOODS,Furniture,CAMP_BED,Camp bed,Average Data (COMEXT),940320,33712N,Other household nonupholstered furniture,12,17868.0,315.0,2189.2000000000003,8.0825,11671.800000000001,27.0
+GOODS,Plumbing,HOSE,Hose,Average Data (COMEXT),391732,326220,Rubber and plastics hoses and belting manufacturing,5,16933.0,408.0,1484.8999999999999,0.93,6256.5,27.0
+GOODS,Tools,HAND_TOOL_SHOVEL,Shovel / spade,Average Data (Research Derived),820110,332200,Cutlery and handtool manufacturing,1,16889.0,6950.0,20850.0,3.0,9725.8,90.0
+GOODS,Kitchen,CHOPPING_BOARD,Chopping board,Average Data (COMEXT),392410,326190,Other plastics product manufacturing,11,16192.0,1916.0,2281.5,1.127,10837.6,27.0
+GOODS,Clothing,RAINWEAR,Raincoat / poncho,Average Data (COMEXT),621040,315000,Apparel manufacturing,9,16035.0,2025.0,539.2,0.243,3824.0,27.0
+GOODS,School supplies,CALCULATOR,Calculator,Average Data (COMEXT),847010,334118,Computer terminals and other computer peripheral equipment manufacturing,8,15726.0,2100.0,492.8,0.2347,8449.4,36.0
+GOODS,Water,JERRYCAN,Jerry can,Average Data (COMEXT),392330,326160,Plastics bottle manufacturing,12,15699.0,8690.0,2070.0,0.2382,9246.699999999999,36.0
+GOODS,School supplies,FILE_FOLDER,File / folder / divider,Average Data (COMEXT),482030,322230,Stationery product manufacturing,16,15321.0,7064.0,3141.1,0.4315,7619.1,27.0
+GOODS,Electrical,LED_LAMP,LED lamp / tube,Average Data (COMEXT),853952,335120,Lighting fixture manufacturing,14,15176.0,280.4,84.89999999999999,0.3033,6732.6,36.0
+SERVICE,Services,SVC_WAREHOUSING,Warehousing / storage,Spend-based (OpenCEDA),,493000,Warehousing and storage,10,14410.0,10.0,0.0,,2406.0,76.0
+GOODS,Energy,WIND_TURBINE,Wind turbine,Average Data (COMEXT),850231,333611,Turbine and turbine generator set units manufacturing,1,14298.0,6.0,1689.1,281.5135,2439.9,36.0
+SERVICE,Services,SVC_OTHER,Other service (unclear),Spend-based (OpenCEDA),,5419A0,"All other miscellaneous professional, scientific, and technical services",4,14166.0,4.0,0.0,,2522.1000000000004,18.0
+GOODS,Water,WATER_TREAT_CHEM,Water treatment tablets / chemicals,Average Data (COMEXT),380894,325180,Other Basic Inorganic Chemical Manufacturing,5,13752.0,9014.0,3333.0,0.483,11885.2,26.0
+GOODS,Tools,HAND_TOOL_HOE,Hoe,Average Data (COMEXT),820130,332200,Cutlery and handtool manufacturing,2,13617.0,2000.0,1018.5,0.5455,13053.1,27.0
+GOODS,School supplies,ENVELOPE,Envelope,Average Data (COMEXT),481710,322230,Stationery product manufacturing,8,11166.0,3370.0,4064.5,1.431,5495.8,27.0
+GOODS,Construction,SAND_GRAVEL,Sand / gravel / aggregate,Average Data (Research Derived),251710,2123A0,Other nonmetallic mineral mining and quarrying,5,10890.0,405.0,648000.0,1600.0,3932.0,63.0
+GOODS,Kitchen,STOVE_GAS,Gas stove,Average Data (COMEXT),732111,335221,Household cooking appliance manufacturing,11,10857.0,364.0,16503.5,45.3388,10232.4,36.0
+SERVICE,Services,SVC_PRINTING,Branding / design service,Spend-based (OpenCEDA),,323110,Printing,4,10679.0,3001.0,0.0,,6797.599999999999,59.0
+GOODS,Consumables,PERSONAL_CARE,Hairdressing / personal care item,Average Data (COMEXT),961590,339990,All other miscellaneous manufacturing,18,10035.0,7748.0,561.5,0.2735,3564.0,27.0
+GOODS,Kitchen,KNIFE,Knife,Average Data (COMEXT),821191,332200,Cutlery and handtool manufacturing,16,9260.0,12621.0,343.1,0.054,3056.7,27.0
+GOODS,Construction,TIMBER,Timber / wood,Average Data (COMEXT),440799,321100,Sawmills and wood preservation,8,9228.0,1283.5,9277.3,25.5195,2534.9,27.0
+GOODS,School supplies,SCHOOL_BAG,School bag / backpack,Average Data (COMEXT),420292,316000,Leather and allied product manufacturing,3,8169.0,38.0,283.2,6.232,2053.1,30.0
+GOODS,Consumables,CLEANING,Cleaning product,Average Data (Research Derived),340250,325610,Soap and cleaning compound manufacturing,3,7696.0,8254.0,8254.0,1.0,4022.7999999999997,90.0
+SERVICE,Services,SVC_UTILITIES,Utilities (power connection / water supply),Spend-based (OpenCEDA),,221100,"Electric power generation, transmission, and distribution",4,7353.0,14.0,0.0,,16822.9,34.0
+GOODS,Construction,PREFAB,Prefabricated unit,Average Data (COMEXT),940610,332310,Plate work and fabricated structural product manufacturing,1,7234.0,1.0,2202.6,2202.618,3176.6,27.0
+GOODS,Hardware,HINGE,Hinge / door hardware,Average Data (COMEXT),830241,332500,Hardware manufacturing,5,7045.0,4606.0,514.9,0.104,4288.900000000001,27.0
+GOODS,Hardware,NAIL,Nails / screws,Average Data (Research Derived),731700,332600,Spring and wire product manufacturing,8,6866.0,5030.1,34042.4,8.0,8180.3,54.0
+SERVICE,Services,SVC_FREIGHT_AIR,Air freight,Spend-based (OpenCEDA),,481000,Air transportation,1,6845.0,1.0,0.0,,5237.4,76.0
+GOODS,Tools,HAND_TOOL_OTHER,Hand tool,Average Data (Research Derived),820559,332200,Cutlery and handtool manufacturing,5,6510.0,191.9,1345.2,6.0,2557.0,54.0
+GOODS,Energy,GAS_CYLINDER,Gas cylinder,Average Data (COMEXT),731100,332420,Metal tank (heavy gauge) manufacturing,6,6160.0,123.0,3032.1,24.6507,8833.7,36.0
+GOODS,School supplies,RULER,Ruler / geometry set,Average Data (COMEXT),901720,339940,Office supplies (except paper) manufacturing,20,5073.0,1392.7,561.7,0.4034,2077.5,29.0
+GOODS,School supplies,GLUE_TAPE,Glue / adhesive tape,Average Data (COMEXT),350691,325520,Adhesive manufacturing,11,5059.0,3319.0,1732.9,0.558,2448.1000000000004,27.0
+GOODS,Shelter,PLASTIC_SHEET,Plastic sheeting / film,Average Data (Research Derived),392010,326110,Plastics packaging materials and unlaminated film and sheet manufacturing,2,4911.0,166.0,895.3,4.86,2295.7,24.5
+GOODS,Electrical,CABLE,Electrical cable,Average Data (COMEXT),854449,335920,Communication and energy wire and cable manufacturing,7,4870.0,802.0,335.9,0.479,2815.5,27.0
+GOODS,Electronics,AUDIO,Audio equipment,Average Data (COMEXT),851822,334300,Audio and video equipment manufacturing,6,3139.0,104.0,1385.3,13.3211,1675.7,36.0
+GOODS,Crafts,SEWING_MACHINE,Sewing machine,Average Data (COMEXT),845229,33329A,Other industrial machinery manufacturing,3,2675.0,8.0,272.0,34.0035,1115.9,36.0
+GOODS,Tools,LADDER,Ladder,Average Data (COMEXT),761699,332999,Other fabricated metal manufacturing,3,2565.0,16.0,121.4,4.641,1137.3,27.0
+GOODS,Plumbing,PIPE_FITTING,Pipe fitting,Average Data (COMEXT),391740,326120,"Plastics pipe, pipe fitting, and unlaminated profile shape manufacturing",17,1741.0,3888.0,72.5,0.018,1342.5,27.0
+GOODS,Plumbing,VALVE,Valve / tap,Average Data (COMEXT),848180,332913,Plumbing fixture fitting and trim manufacturing,10,1573.0,712.0,33.199999999999996,0.058499999999999996,569.1,27.0
+GOODS,School supplies,SCISSORS,Scissors,Average Data (COMEXT),821300,332200,Cutlery and handtool manufacturing,14,1519.0,394.0,117.1,0.6375,760.8,27.0
+GOODS,Construction,WALL_PANEL,Insulated / building panel,Average Data (COMEXT),730890,326150,Urethane and other foam product (except polystyrene) manufacturing,7,1459.0,68.0,384.3,5.795,657.0,27.0
+GOODS,Crafts,NEEDLE,Needles / pins,Average Data (COMEXT),731910,339990,All other miscellaneous manufacturing,11,482.0,661.0,0.0,,163.4,0.0
+GOODS,Energy,INVERTER,Inverter / charge controller,Average Data (COMEXT),850440,335999,All other miscellaneous electrical equipment and component manufacturing,1,457.0,67.0,134.5,2.0071,322.3,36.0
+GOODS,Tools,HAND_TOOL_MACHETE,Machete,Average Data (COMEXT),820190,332200,Cutlery and handtool manufacturing,3,457.0,76.0,59.1,0.581,177.0,27.0
+GOODS,School supplies,SPORTS,Sports equipment,Average Data (COMEXT),950662,339920,Sporting and athletic goods manufacturing,4,317.0,112.0,16.5,1.0635,91.30000000000001,27.0
+GOODS,School supplies,CHALK,Chalk,Average Data (COMEXT),960990,339940,Office supplies (except paper) manufacturing,5,240.0,236.0,12.2,0.051,102.8,27.0
+SERVICE,Services,SVC_INSURANCE,Insurance,Spend-based (OpenCEDA),,5241XX,"Insurance carriers, except direct life",3,198.0,3.0,0.0,,15.700000000000001,76.0
+GOODS,Safety,FIRE_EXT,Fire extinguisher,Average Data (COMEXT),842410,339990,All other miscellaneous manufacturing,1,131.0,2.0,19.1,9.567,23.2,27.0
+GOODS,School supplies,ERASER_SHARPENER,Eraser / sharpener,Average Data (COMEXT),401692,339940,Office supplies (except paper) manufacturing,2,76.0,294.0,3.0,0.0115,31.900000000000002,27.0
+GOODS,Construction,PAINT,Paint,Unallocated,320910,325510,Paint and coating manufacturing,2,0.0,255.0,0.0,,0.0,0.0
+GOODS,Construction,DOOR,Door,Unallocated,441820,321910,Millwork,1,0.0,69.0,0.0,,0.0,0.0
+GOODS,Construction,STEEL_SECTION,Steel bar / section,Unallocated,7216,331200,Steel product manufacturing from purchased steel,5,0.0,2803.0,0.0,,0.0,0.0
+GOODS,Construction,WALL_PANEL,Insulated / building panel,Unallocated,730890,326150,Urethane and other foam product (except polystyrene) manufacturing,2,0.0,255.0,0.0,,0.0,0.0
+GOODS,Construction,WINDOW,Window,Unallocated,441810,321910,Millwork,2,0.0,510.0,0.0,,0.0,0.0
+GOODS,Construction,WIRE_MESH,Wire / wire mesh,Unallocated,731449,332600,Spring and wire product manufacturing,2,0.0,255.0,0.0,,0.0,0.0
+GOODS,Furniture,CAMP_BED,Camp bed,Unallocated,940320,33712N,Other household nonupholstered furniture,2,0.0,30.0,0.0,,0.0,0.0
+GOODS,Crafts,THREAD,Thread / yarn,Unallocated,540110,313100,"Fiber, yarn, and thread mills",14,0.0,2673.0,5711.0,2.268,0.0,0.0
+GOODS,Consumables,CLEANING,Cleaning product,Unallocated,340250,325610,Soap and cleaning compound manufacturing,1,0.0,173.0,0.0,,0.0,0.0
+GOODS,Construction,ROOF_SHEET,Corrugated roofing sheet,Unallocated,721041,332320,Ornamental and architectural metal products manufacturing,2,0.0,1785.0,0.0,,0.0,0.0
+GOODS,Hardware,PADLOCK,Padlock / lock,Unallocated,830110,332500,Hardware manufacturing,2,0.0,153.0,0.0,,0.0,0.0
+GOODS,Logistics equipment,SCALE,Weighing scale,Unallocated,842382,33399A,Other general purpose machinery manufacturing,1,0.0,8.0,40.0,5.0,0.0,0.0
+GOODS,Hardware,NAIL,Nails / screws,Unallocated,731700,332600,Spring and wire product manufacturing,2,0.0,160.0,800.0,5.0,0.0,0.0
+GOODS,Logistics equipment,SACK,Woven sack / bag,Unallocated,630533,314900,Other textile product mills,3,0.0,202550.0,0.0,,0.0,0.0
+GOODS,Logistics equipment,STORAGE_BOX,Plastic storage box / crate,Unallocated,392310,326190,Other plastics product manufacturing,2,0.0,20.0,0.0,,0.0,0.0
+GOODS,Shelter,TARPAULIN,Tarpaulin,Unallocated,630612,314900,Other textile product mills,2,0.0,46.0,193.2,4.2,0.0,0.0
+OUT_OF_SCOPE,Out of scope,OOS_MED,Medicine / medical consumable,Unallocated,3004,325412,Pharmaceutical preparation manufacturing,8,0.0,992.0,0.0,,0.0,0.0
+OUT_OF_SCOPE,Out of scope,OOS_FOOD,Food / ration item,Unallocated,,311990,All other food manufacturing,2,0.0,4.0,0.0,,0.0,0.0
+SERVICE,Services,SVC_FREIGHT_ROAD,Road freight / delivery,Unallocated,,484000,Truck transportation,2,0.0,2.0,0.0,,0.0,0.0
+SERVICE,Services,SVC_CUSTOMS,Customs clearance / freight forwarding,Unallocated,,48A000,Scenic and sightseeing transportation and support activities for transportation,1,0.0,1.0,0.0,,0.0,0.0
+SERVICE,Services,SVC_HANDLING,Cargo handling (loading / offloading),Unallocated,,48A000,Scenic and sightseeing transportation and support activities for transportation,1,0.0,1.0,0.0,,0.0,0.0
+SERVICE,Services,SVC_RENTAL,Equipment rental (tents / furniture),Unallocated,,532A00,General and consumer goods rental,1,0.0,1.0,0.0,,0.0,0.0

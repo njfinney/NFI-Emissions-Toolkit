@@ -12,8 +12,12 @@ digits (dots allowed) and match as prefixes, e.g.
   9404.30,Sleeping bags
   8481,Taps and valves
 
-Output columns: cn8, label, n_records, median_kg_per_unit, p25, p75, weighted_kg_per_unit,
-eur_per_kg, median_eur_per_kg, total_kg, total_units
+Output columns: cn8, label, supp_unit, supp_unit_label, cn8_description, n_records,
+median_kg_per_unit, p25, p75, weighted_kg_per_unit, eur_per_kg, median_eur_per_kg, total_kg,
+total_units
+  - supp_unit is the Comext code (PST, PA, 1000_PST, M, M2, M3, L, ..., NO_SU) valid in the
+    latest period of the data, from Eurostat COMEXT_METADATA RELATIONS/CN8-SUPPL_UNIT.txt;
+    labels come from CLASSIFICATIONS/ENGLISH/SUPPL_UNIT.txt and CN.txt
   - kg_per_unit columns are blank for codes with no supplementary unit (mass-only codes)
   - eur_per_kg is available for every code and feeds the price-based weight proxy
 """
@@ -43,6 +47,9 @@ def main():
     ap.add_argument("files", help='Path or glob, e.g. "full_v2_2025*.dat"')
     ap.add_argument("--codes", required=True, help="CSV of CN codes (and optional labels)")
     ap.add_argument("--out", default="unit_weights.csv")
+    ap.add_argument("--metadata", default="comext_metadata",
+                    help="folder with CN8-SUPPL_UNIT.txt, SUPPL_UNIT.txt and CN.txt from "
+                         "Eurostat comext/COMEXT_METADATA/CLASSIFICATIONS_AND_RELATIONS")
     args = ap.parse_args()
 
     codes = load_codes(args.codes)
@@ -86,6 +93,34 @@ def main():
         """)
         src = "raw_dedup"
 
+    # Supplementary unit per CN8, valid on the first day of the latest period in the data.
+    import os
+    md = args.metadata.replace("'", "''")
+    su_file = os.path.join(args.metadata, "CN8-SUPPL_UNIT.txt")
+    if not os.path.exists(su_file):
+        sys.exit(f"{su_file} not found. Download it from Eurostat bulk download, folder "
+                 "comext/COMEXT_METADATA/CLASSIFICATIONS_AND_RELATIONS/RELATIONS/")
+    pe = upper.get("PERIOD")
+    ref = con.execute(f'SELECT max("{pe}") FROM {src}').fetchone()[0] if pe else None
+    ref_date = f"{ref[:4]}-{ref[4:6]}-01" if ref else "2500-01-01"
+    def tsv(name, cols, enc="utf-8"):   # SUPPL_UNIT.txt is Latin-1, the others ASCII
+        f = os.path.join(md, name).replace("'", "''")
+        return (f"read_csv('{f}', delim='\\t', header=false, all_varchar=true, encoding='{enc}', "
+                f"quote='', columns={{{', '.join(f"'{c}': 'VARCHAR'" for c in cols)}}})")
+    valid = f"strptime('{ref_date}', '%Y-%m-%d') BETWEEN strptime(d_from, '%d/%m/%Y') AND strptime(d_to, '%d/%m/%Y')"
+    con.execute(f"""CREATE TABLE su AS SELECT cn8, any_value(unit) AS unit
+                    FROM {tsv('CN8-SUPPL_UNIT.txt', ['cn8', 'unit', 'd_from', 'd_to'])}
+                    WHERE {valid} GROUP BY cn8""")
+    lab = os.path.join(args.metadata, "SUPPL_UNIT.txt")
+    con.execute(f"CREATE TABLE su_lab AS SELECT * FROM {tsv('SUPPL_UNIT.txt', ['unit', 'label'], 'latin-1')}"
+                if os.path.exists(lab) else "CREATE TABLE su_lab(unit VARCHAR, label VARCHAR)")
+    cnf = os.path.join(args.metadata, "CN.txt")
+    con.execute(f"""CREATE TABLE cn_lab AS SELECT cn8, any_value(descr) AS descr
+                    FROM {tsv('CN.txt', ['cn8', 'd_from', 'd_to', 'descr'])}
+                    WHERE length(cn8) = 8 AND {valid} GROUP BY cn8"""
+                if os.path.exists(cnf) else "CREATE TABLE cn_lab(cn8 VARCHAR, descr VARCHAR)")
+    print(f"Supplementary units valid on {ref_date}: {con.execute('SELECT count(*) FROM su').fetchone()[0]} CN8 codes")
+
     query = f"""
     WITH r AS (
       SELECT trim("{nc}") AS cn8,
@@ -120,9 +155,16 @@ def main():
              round(sum(kg), 0)            AS total_kg
       FROM m WHERE eur > 0 GROUP BY cn8
     )
-    SELECT ms.cn8, ms.label, us.n_records, us.median_kg_per_unit, us.p25, us.p75,
+    SELECT ms.cn8, ms.label,
+           coalesce(su.unit, 'NO_SU') AS supp_unit,
+           coalesce(su_lab.label, 'No supplementary unit') AS supp_unit_label,
+           cn_lab.descr AS cn8_description,
+           us.n_records, us.median_kg_per_unit, us.p25, us.p75,
            us.weighted_kg_per_unit, ms.eur_per_kg, ms.median_eur_per_kg, ms.total_kg, us.total_units
     FROM ms LEFT JOIN us USING (cn8)
+    LEFT JOIN su USING (cn8)
+    LEFT JOIN su_lab ON su_lab.unit = coalesce(su.unit, 'NO_SU')
+    LEFT JOIN cn_lab USING (cn8)
     ORDER BY cn8
     """
     con.execute(f"COPY ({query}) TO '{args.out}' (HEADER, DELIMITER ',')")

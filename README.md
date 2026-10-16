@@ -35,6 +35,15 @@ dominant supplementary unit are used.
 | m, m2, m3, l | `COMEXT_CONVERTED` | median x `length_m`, `area_m2`, `volume_l`/1000 or `volume_l` parsed from the description; not applied without a size |
 | none (kg only), or a unit with no size (incl. `CEEL`) | `PRICE_PROXY` | unit price x usd_to_eur / Comext EUR per kg |
 
+Special cases:
+- **Tiles and drywall** (`QTY_IN_M2_ITEMS`): the quantity is recorded in m2, so the Comext kg per m2
+  is the kg per unit (`COMEXT_CONVERTED`); `QTY_NOT_INTEGER` is not raised for them.
+- **Generators**: CN8 band from the rated output (kVA; kW / 0.8; watts). Diesel 8502.11-13 by
+  default, spark ignition 8502.20 when the text says petrol / inverter / portable. With no rating
+  the price proxy is used, since kg per set varies 100x across bands.
+- **Price proxy on lump sums**: total kg = value x FX / EUR per kg; when units are re-estimated
+  the total is spread over them, never multiplied again.
+
 `COMEXT_PRICE_MISMATCH`: WFP price per kg (after FX) is outside 0.2-5x Comext EUR per kg for the same
 CN8 codes (`comext_price_ratio`). It usually means the wrong CN8 within the 6-digit code or a
 quantity-unit mismatch. Not computed for the price proxy (ratio 1 by construction).

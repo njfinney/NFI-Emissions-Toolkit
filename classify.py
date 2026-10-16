@@ -68,7 +68,7 @@ def attributes(n: str) -> dict:
         dims = [d * f for d in dims]
         a["dims_m"] = dims
         a["dims_txt"] = "x".join(f"{d:g}" for d in dims) + " m"
-    m = re.search(NUM + r"\s*(sq ?m|sqm|sq mtrs?|sq meters?|m2|mtr2)\b", n)
+    m = re.search(NUM + r"\s*(sq ?m|sqm|sq ?mtrs?|sq ?meters?|m2|mtr2)\b", n)
     if m:
         a["area_m2"] = float(m.group(1))
     elif "dims_m" in a and len(a["dims_m"]) == 2:
@@ -128,11 +128,35 @@ HEAVY_TARP_KG_M2 = 0.25  # fumigation / truck sheets: assumption, verify
 PE_DENSITY = 920      # kg/m3
 
 
-def generator_cn(a):
-    if "power" not in a or not a["power"].endswith("kva"):
+SPARK_IGNITION = re.compile(r"\b(inverter|petrol|gasoline|essence|gasolina|portable|portatil)\b")
+
+
+def generator_kva(a, n):
+    """Rated output in kVA from 'N kVA', 'N kW' (kW / 0.8 power factor) or 'N watt(s)'."""
+    if "power" in a:
+        v, unit = a["power"].split()
+        return float(v) if unit == "kva" else float(v) / 0.8
+    m = re.search(NUM + r"\s*(watts?|w)\b", n)
+    return float(m.group(1)) / 1000 / 0.8 if m else None
+
+
+def generator_cn(a, n=""):
+    """CN8 band for a generating set. Diesel (8502.1x) unless the text says petrol / inverter /
+    portable (spark ignition, 8502.20). None when no rating is stated."""
+    kva = generator_kva(a, n)
+    if kva is None:
         return None
-    kva = float(a["power"].split()[0])
-    return "850211" if kva <= 75 else ("850212" if kva <= 375 else "850213")
+    if SPARK_IGNITION.search(n):
+        return "85022020" if kva <= 7.5 else ("85022040" if kva <= 375 else "85022080")
+    for top, code in ((7.5, "85021120"), (75, "85021180"), (375, "85021200"),
+                      (750, "85021320"), (2000, "85021340")):
+        if kva <= top:
+            return code
+    return "85021380"
+
+
+# quantity recorded in m2 (confirmed by reviewer), so Comext kg per m2 applies per unit
+QTY_IN_M2_ITEMS = {"TILES", "DRYWALL"}
 
 
 def estimate_kg(item, a):
@@ -295,7 +319,7 @@ def main():
         else:
             cn = hit["cn"]
             if hit["item_id"] == "GENERATOR":
-                cn = generator_cn(a) or cn
+                cn = generator_cn(a, n) or cn
             spend_scope = hit["scope"] in ("WORKS", "SERVICE", "OUT_OF_SCOPE", "ADJUSTMENT", "UNCLEAR")
             kg, basis, conf = (None, "", 0.0) if spend_scope else estimate_kg(hit, a)
             if ov and ov.get("kg_per_unit"):
@@ -360,7 +384,16 @@ def main():
             per = {"100_PST": 100, "1000_PST": 1000}
             size = {"M": ("length_m", 1, "m"), "M2": ("area_m2", 1, "m2"),
                     "L": ("volume_l", 1, "L"), "M3": ("volume_l", 0.001, "m3")}
-            if unit in ("PST", "PA") or unit in per:
+            if lk.at[i, "item_id"] == "GENERATOR" and generator_kva(attrs_of(lk.at[i, "attributes"]),
+                                                                     lk.at[i, "desc_norm"]) is None:
+                # no rating stated: kg per set varies 100x across bands, use the price proxy
+                lk.at[i, "comext_route"] = "NOT_APPLIED_NO_RATING"
+                continue
+            if unit == "M2" and lk.at[i, "item_id"] in QTY_IN_M2_ITEMS:
+                kg, route = med, "COMEXT_CONVERTED"
+                basis = f"Comext median kg/m2, quantity recorded in m2 [{route}, M2], {src}"
+                score = DS["COMEXT_WIDE"] if wide else DS["COMEXT_CONVERTED"]
+            elif unit in ("PST", "PA") or unit in per:
                 div = per.get(unit, 1)
                 kg = med / div
                 route = {"PST": "COMEXT_PST", "PA": "COMEXT_PA"}.get(unit, f"COMEXT_{unit}")
@@ -401,7 +434,8 @@ def main():
         ok = proxy.notna() & (proxy > 0)
         idx = proxy[ok].index
         out.loc[idx, "kg_per_unit"] = proxy[ok].round(3)
-        why = out.loc[idx, "comext_route"].fillna("").str.replace("NOT_APPLIED_", "no size for ", regex=False)
+        why = (out.loc[idx, "comext_route"].fillna("").str.replace("NOT_APPLIED_NO_RATING", "no power rating", regex=False)
+               .str.replace("NOT_APPLIED_", "no size for ", regex=False))
         why = why.where(why != "", out.loc[idx, "supp_unit"].fillna("NO_SU").replace({"NO_SU": "kg only"}))
         out.loc[idx, "kg_basis"] = ("price proxy: unit price x " + f"{args.usd_to_eur:g}" + " / Comext EUR per kg [PRICE_PROXY, "
                                     + why + "], CN " + out.loc[idx, "cn"].astype(str))
@@ -438,7 +472,7 @@ def main():
         elif (goods and n_item[i] >= 3 and pd.notna(ratio[i]) and (ratio[i] > 5 or ratio[i] < 0.2)
               and r["group"] not in NO_PRICE_CHECK_GROUPS and r["item_id"] not in NO_PRICE_CHECK_ITEMS):
             f.append("QTY_UNIT_SUSPECT")
-        if goods and r["Quantity"] % 1 != 0:
+        if goods and r["Quantity"] % 1 != 0 and r["item_id"] not in QTY_IN_M2_ITEMS:
             f.append("QTY_NOT_INTEGER")   # usually m2, m or kg rather than pieces
         cr = r["comext_price_ratio"]
         if pd.notna(cr) and (cr > 5 or cr < 0.2):
@@ -473,6 +507,12 @@ def main():
     out["units_est"] = units.round(1)
     out["units_basis"] = ["qty as recorded" if not s else ("qty stated in text" if pd.notna(h) else
                           "value / item median unit price") for s, h in zip(sus, hint)]
+    # price proxy: total kg = value x FX / EUR per kg, so the quantity cancels out. Where units
+    # were re-estimated (lump sums), spread that total over the new units instead of
+    # multiplying a whole-order 'unit' weight by them again.
+    pp = out["kg_basis"].astype(str).str.startswith("price proxy") & (out["units_basis"] != "qty as recorded")
+    pp_total = out.loc[pp, "Goods_Receipt_Value_USD"] * args.usd_to_eur / out.loc[pp, "cn"].map(eur_per_kg)
+    out.loc[pp, "kg_per_unit"] = (pp_total / out.loc[pp, "units_est"]).round(3)
     out["total_kg_est"] = (out["units_est"] * out["kg_per_unit"]).round(1)
 
     # ---- proposed emissions calculation approach (applied in this order)

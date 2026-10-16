@@ -25,8 +25,8 @@ code,label
 420292,School bag / backpack
 440799,Timber / wood
 441520,Wooden pallet
-441810,Window
-441820,Door
+441819,Window
+441829,Door
 460194,Sleeping mat
 480256,Paper (reams)
 481710,Envelope
@@ -46,6 +46,7 @@ code,label
 630533,Woven sack / bag
 630612,Fumigation sheet; Truck tarpaulin; Tarpaulin
 630622,Large tent (multipurpose/classroom); Mobile storage unit / warehouse tent; Famil
+630790,PPE (masks / respirators / ear plugs)
 640192,Boots / footwear
 680911,Plasterboard / drywall
 690721,Ceramic tiles
@@ -58,11 +59,12 @@ code,label
 731100,Gas cylinder
 731449,Wire / wire mesh
 731700,Nails / screws
-731910,Needles / pins
+731990,Needles / pins
 732111,Gas stove
 732119,Institutional stove (school); Cooking stove (solid fuel)
 732189,Heater stove (tent)
 732393,Cooking pot / pan; Basin / wash basin
+761510,Basin (aluminium)
 761699,Ladder
 820110,Shovel / spade
 820130,Hoe
@@ -83,6 +85,7 @@ code,label
 842121,Water filter / purification
 842382,Weighing scale
 842410,Fire extinguisher
+842519,Hoist / crane (manual)
 843780,Grain mill / decorticator
 843810,Bakery equipment
 845229,Sewing machine
@@ -93,21 +96,27 @@ code,label
 850211,Generator <=75 kVA
 850212,Generator
 850213,Generator >375 kVA
+850220,Generator (spark ignition)
 850231,Wind turbine
 850440,Inverter / charge controller
 850720,Battery
 850940,Small electrical appliance
 851310,Solar lamp / lantern
 851660,Electric cooker
-851822,Audio equipment
+851821,Loudspeaker / audio equipment
+851850,Megaphone
 853690,Electrical accessory (socket/switch/breaker)
 853952,LED lamp / tube
 854143,Solar panel
 854449,Electrical cable
 860900,Shipping container
-8716,Vehicle / trailer / bicycle
+871120,Motorcycle
+871200,Bicycle
+871639,Trailer
+871680,Wheelbarrow
 901580,Weather / measuring instrument
 901720,Ruler / geometry set
+920890,Whistle
 940169,Chair
 940320,Camp bed
 940360,School desk / bench; Table; Shelf / cabinet

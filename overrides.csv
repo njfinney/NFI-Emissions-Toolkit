@@ -29,3 +29,5 @@ Washers,NAIL,,fastener washers
 Grille metallique porte acces generateur,STEEL_SECTION,,metal grille / access door
 Stabila balance tool (M-70 or equivalent,HAND_TOOL_OTHER,,spirit level
 Soil Auger,HAND_TOOL_OTHER,,soil auger (hand tool)
+Hybrid/Solar generator,INVERTER,,solar power station (battery + inverter); not a fuel genset
+Cartes grises pour moto,SVC_OTHER,,motorcycle registration documents (fee)

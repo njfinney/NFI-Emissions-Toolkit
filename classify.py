@@ -430,10 +430,11 @@ def main():
     if eur_per_kg:
         need = out.kg_per_unit.isna() & out.scope.isin(["GOODS", "KIT"]) & out.cn.notna()
         epk = out.loc[need, "cn"].map(eur_per_kg)
-        proxy = out.loc[need, "unit_price_usd"] * args.usd_to_eur / epk
+        # unrounded value / quantity: the rounded unit price is off by up to 25% on cheap items
+        proxy = (out.loc[need, "Goods_Receipt_Value_USD"] / q[need]) * args.usd_to_eur / epk
         ok = proxy.notna() & (proxy > 0)
         idx = proxy[ok].index
-        out.loc[idx, "kg_per_unit"] = proxy[ok].round(3)
+        out.loc[idx, "kg_per_unit"] = proxy[ok].round(6)
         why = (out.loc[idx, "comext_route"].fillna("").str.replace("NOT_APPLIED_NO_RATING", "no power rating", regex=False)
                .str.replace("NOT_APPLIED_", "no size for ", regex=False))
         why = why.where(why != "", out.loc[idx, "supp_unit"].fillna("NO_SU").replace({"NO_SU": "kg only"}))
@@ -512,7 +513,7 @@ def main():
     # multiplying a whole-order 'unit' weight by them again.
     pp = out["kg_basis"].astype(str).str.startswith("price proxy") & (out["units_basis"] != "qty as recorded")
     pp_total = out.loc[pp, "Goods_Receipt_Value_USD"] * args.usd_to_eur / out.loc[pp, "cn"].map(eur_per_kg)
-    out.loc[pp, "kg_per_unit"] = (pp_total / out.loc[pp, "units_est"]).round(3)
+    out.loc[pp, "kg_per_unit"] = (pp_total / out.loc[pp, "units_est"]).round(6)
     out["total_kg_est"] = (out["units_est"] * out["kg_per_unit"]).round(1)
 
     # ---- proposed emissions calculation approach (applied in this order)
@@ -604,7 +605,7 @@ def main():
             "group", "scope", "emissions_approach", "cn", "ceda_code", "ceda_target",
             "ceda_ef_kgco2e_per_usd", "ceda_ef_geography", "spend_kgco2e", "weight_method",
             "kg_per_unit", "kg_basis", "supp_unit", "comext_route", "comext_cn8", "comext_p25", "comext_p75",
-            "comext_eur_per_kg", "comext_price_ratio", "confidence_score", "confidence_band", "confidence_basis",
+            "comext_eur_per_kg", "comext_price_ratio", "confidence_score", "id_score", "quant_score", "qty_factor", "confidence_band", "confidence_basis",
             "Quantity", "Goods_Receipt_Value_USD", "unit_price_usd", "price_ratio_vs_item_median",
             "flags", "units_est", "units_basis", "total_kg_est", "attributes", "match", "matched_text",
             "Supplier_Country_Name", "Material_Group_Category", "Material_Group_Class",

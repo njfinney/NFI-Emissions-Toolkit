@@ -73,10 +73,27 @@ quantity-unit mismatch. Not computed for the price proxy (ratio 1 by constructio
 `flags` · `units_est` · `total_kg_est` · `match` + `matched_text` (why the row got its item).
 
 ## Maintaining it
-- New wording that lands in the wrong item → add a pattern to the right row of
-  `vocabulary.csv`, or a line to `overrides.csv`.
-- New item type → add a row (position matters: put it above anything more generic).
-- Check `nfi_lookup.csv` sorted by value after each change: one row per unique description.
+Run everything with `make` from this folder (`make run` after a vocabulary or override change,
+`make all DAT=... PERIOD=... FX=...` after new Comext months). Each run writes `nfi_checks.csv` and
+`nfi_review.html`, and stops if an integrity check fails.
+
+| When | Do |
+|---|---|
+| A description lands in the wrong item | Add a pattern to the right row of `vocabulary.csv` (one-off: a line in `overrides.csv`), then add the description to `GOLDEN` in `tests/test_pipeline.py` |
+| New item type | Add a row above anything more generic, add its CN to `codes_nfi.csv`, `make all` |
+| New NFI extract | Replace `NFI_Categorisations.csv`, `make run`, work through the review page's Checks tab |
+| New Comext months | Put the `.dat` files in `comext_dat/` (not committed), `make all PERIOD=...` |
+| Each run | Set `FX` to the ECB average for the Comext period |
+| Each January | `make metadata`, then `make test`: the CN-year test lists vocabulary codes that were retired |
+
+Review each change as a pull request: the diff of `nfi_lookup.csv` shows exactly which
+descriptions changed item, weight or score.
+
+### Review page
+`nfi_review.html` is self-contained (open it in a browser, or publish it). Tabs: Overview
+(value by approach, confidence bands, WFP vs Comext price per kg, where the weight sits), Checks
+(integrity rules that must be 0, review flags, info), Rows (filter, sort, row detail with the
+score breakdown), Items (spread of kg/unit and price per kg inside each item).
 
 ## Emissions approach (first rule that applies)
 1. **Unallocated** - scope UNCLEAR, contract adjustments (contingency, variation, retention, tax,

@@ -1,0 +1,125 @@
+code,label
+251710,Sand / gravel / aggregate
+252020,Plaster / gypsum
+252329,Cement
+300650,First aid kit / medical equipment
+320910,Paint
+321490,Tile adhesive / grout
+340250,Cleaning product
+350691,Glue / adhesive tape
+380894,Water treatment tablets / chemicals
+391721,Pipe
+391732,Hose
+391740,Pipe fitting
+391890,Modular plastic flooring
+392010,Geomembrane; Plastic sheeting / film
+392290,Latrine slab
+392310,Plastic storage box / crate
+392321,Garbage bag
+392330,Jerry can
+392390,Plastic pallet
+392410,Chopping board; Plate / bowl; Food tray; Cup / mug
+392490,Bucket
+392510,Water tank
+401692,Eraser / sharpener
+420292,School bag / backpack
+440799,Timber / wood
+441520,Wooden pallet
+441810,Window
+441820,Door
+460194,Sleeping mat
+480256,Paper (reams)
+481710,Envelope
+481910,Cardboard box
+482010,Register / receipt book
+482020,Exercise book
+482030,File / folder / divider
+520812,Fabric / cloth
+540110,Thread / yarn
+560749,Rope
+560890,Agricultural / animal net
+621040,Raincoat / poncho
+621142,Apron; Clothing / PPE
+621600,Gloves
+630140,Blanket (high thermal); Blanket (medium thermal); Blanket
+630491,Mosquito net
+630533,Woven sack / bag
+630612,Fumigation sheet; Truck tarpaulin; Tarpaulin
+630622,Large tent (multipurpose/classroom); Mobile storage unit / warehouse tent; Famil
+640192,Boots / footwear
+680911,Plasterboard / drywall
+690721,Ceramic tiles
+691010,Sink / hand-washing station
+701810,Beads
+721041,Corrugated roofing sheet
+7216,Steel bar / section
+730890,Insulated / building panel
+730900,Storage silo
+731100,Gas cylinder
+731449,Wire / wire mesh
+731700,Nails / screws
+731910,Needles / pins
+732111,Gas stove
+732119,Institutional stove (school); Cooking stove (solid fuel)
+732189,Heater stove (tent)
+732393,Cooking pot / pan; Basin / wash basin
+761699,Ladder
+820110,Shovel / spade
+820130,Hoe
+820140,Axe
+820190,Machete
+820559,Hand tool
+821191,Knife
+821300,Scissors
+821599,Kitchen utensil
+830110,Padlock / lock
+830241,Hinge / door hardware
+830520,Stapler / staples / clips
+831000,Sign / signpost / banner
+841370,Pump
+841780,Incinerator
+841830,Freezer / refrigerator
+841981,Oven
+842121,Water filter / purification
+842382,Weighing scale
+842410,Fire extinguisher
+843780,Grain mill / decorticator
+843810,Bakery equipment
+845229,Sewing machine
+846729,Power tool
+847010,Calculator
+847130,IT equipment
+848180,Valve / tap
+850211,Generator <=75 kVA
+850212,Generator
+850213,Generator >375 kVA
+850231,Wind turbine
+850440,Inverter / charge controller
+850720,Battery
+850940,Small electrical appliance
+851310,Solar lamp / lantern
+851660,Electric cooker
+851822,Audio equipment
+853690,Electrical accessory (socket/switch/breaker)
+853952,LED lamp / tube
+854143,Solar panel
+854449,Electrical cable
+860900,Shipping container
+8716,Vehicle / trailer / bicycle
+901580,Weather / measuring instrument
+901720,Ruler / geometry set
+940169,Chair
+940320,Camp bed
+940360,School desk / bench; Table; Shelf / cabinet
+940421,Mattress
+940430,Sleeping bag
+940549,Lighting tower
+940610,Prefabricated unit
+950662,Sports equipment
+960810,Pen / marker
+960910,Pencil / crayon
+960990,Chalk
+961000,Blackboard / whiteboard / easel
+961590,Hairdressing / personal care item
+961700,Thermos / insulated container
+961900,Sanitary pad

@@ -1,0 +1,84 @@
+Supplier_Country_Name,iso3,un_subregion,in_ceda
+Afghanistan,AFG,Central Asia,True
+Armenia,ARM,Western Asia,False
+Austria,AUT,Western Europe,True
+Bangladesh,BGD,Central Asia,True
+Barbados,BRB,Caribbean,True
+Belgium,BEL,Western Europe,True
+Bhutan,BTN,Central Asia,True
+Burkina Faso,BFA,Western Africa,True
+Burundi,BDI,Eastern Africa,True
+Cambodia,KHM,South-Eastern Asia,True
+Cameroon,CMR,Middle Africa,True
+Central African Republic,CAF,Middle Africa,True
+Chad,TCD,Middle Africa,True
+China,CHN,Eastern Asia,True
+Colombia,COL,South America,True
+Congo,COG,Middle Africa,True
+Democratic Republic of the Congo,COD,Middle Africa,False
+Denmark,DNK,Northern Europe,True
+Ecuador,ECU,South America,True
+Egypt,EGY,Northern Africa,True
+El Salvador,SLV,Central America,True
+Ethiopia,ETH,Eastern Africa,True
+France,FRA,Western Europe,True
+Gambia,GMB,Western Africa,True
+Germany,DEU,Western Europe,True
+Ghana,GHA,Western Africa,False
+Guatemala,GTM,Central America,True
+Guinea,GIN,Western Africa,True
+Guinea-Bissau,GNB,Western Africa,True
+India,IND,Central Asia,True
+Iran (Islamic Republic of),IRN,Central Asia,True
+Iraq,IRQ,Western Asia,True
+Israel,ISR,Western Asia,True
+Italy,ITA,Southern Europe,True
+Jordan,JOR,Western Asia,True
+Kenya,KEN,Eastern Africa,True
+Kyrgyz Republic,KGZ,Central Asia,False
+Lao People's Democratic Republic,LAO,South-Eastern Asia,True
+Lebanon,LBN,Western Asia,True
+Lesotho,LSO,Southern Africa,True
+Liberia,LBR,Western Africa,False
+Madagascar,MDG,Eastern Africa,False
+Malawi,MWI,Eastern Africa,True
+Malaysia,MYS,South-Eastern Asia,True
+Mali,MLI,Western Africa,True
+Mauritania,MRT,Western Africa,False
+Mozambique,MOZ,Eastern Africa,False
+Myanmar,MMR,South-Eastern Asia,True
+Nepal,NPL,Central Asia,True
+Netherlands (Kingdom of the),NLD,Western Europe,True
+Nicaragua,NIC,Central America,True
+Niger,NER,Western Africa,True
+Nigeria,NGA,Western Africa,True
+Norway,NOR,Northern Europe,True
+Pakistan,PAK,Central Asia,True
+Panama,PAN,Central America,False
+Peru,PER,South America,True
+Philippines,PHL,South-Eastern Asia,True
+Republic of Korea,KOR,Eastern Asia,True
+Rwanda,RWA,Eastern Africa,True
+Senegal,SEN,Western Africa,True
+Sierra Leone,SLE,Western Africa,True
+Somalia,SOM,Eastern Africa,False
+South Africa,ZAF,Southern Africa,True
+South Sudan,SSD,Eastern Africa,False
+Spain,ESP,Southern Europe,True
+Sri Lanka,LKA,Central Asia,True
+State of Palestine,PSE,Western Asia,False
+Sudan,SDN,Northern Africa,False
+Sweden,SWE,Northern Europe,True
+Switzerland,CHE,Western Europe,True
+Tajikistan,TJK,Central Asia,False
+Thailand,THA,South-Eastern Asia,True
+Timor-Leste,TLS,South-Eastern Asia,True
+Togo,TGO,Western Africa,True
+Uganda,UGA,Eastern Africa,True
+Ukraine,UKR,Eastern Europe,True
+United Arab Emirates,ARE,Western Asia,True
+United Kingdom of Great Britain & Northern Ireland,GBR,Northern Europe,True
+United Republic of Tanzania,TZA,Eastern Africa,True
+United States of America,USA,Northern America,True
+Venezuela,VEN,South America,False
+Yemen,YEM,Western Asia,False

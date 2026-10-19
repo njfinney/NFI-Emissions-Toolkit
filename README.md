@@ -90,10 +90,16 @@ Review each change as a pull request: the diff of `nfi_lookup.csv` shows exactly
 descriptions changed item, weight or score.
 
 ### Review page
+Private link: https://claude.ai/artifact/169mLsCZBxUgYFtKMbNB6Q (only people it is shared with can open it;
+share it from the page's Share menu). The page is built from this repo by `make review` and republished
+from `nfi_review.html`. It is not on GitHub Pages: a Pages site from a private repo would be public.
+
 `nfi_review.html` is self-contained (open it in a browser, or publish it). Tabs: Overview
 (value by approach, confidence bands, WFP vs Comext price per kg, where the weight sits), Checks
 (integrity rules that must be 0, review flags, info), Rows (filter, sort, row detail with the
-score breakdown), Items (spread of kg/unit and price per kg inside each item).
+score breakdown), Items (spread of kg/unit and price per kg inside each item), Emissions (click-through
+treemap and table: category -> item -> recipe component, or material -> item; component kg CO2e =
+item kg x mass share x material factor; spend-based items show their OpenCEDA sector).
 
 ## Emissions approach (first rule that applies)
 1. **Unallocated** - scope UNCLEAR, contract adjustments (contingency, variation, retention, tax,

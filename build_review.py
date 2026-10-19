@@ -63,6 +63,12 @@ def build_checks(o, eur_per_kg, fx):
          "Weight-based needs category A or B, a production recipe and a weight; the total must equal the chosen method.",
          lambda: (wb & (~tier.isin(["A", "B"]) | o.composite_ef_kgco2e_per_kg.isna() | ~(o.total_kg_est > 0)))
          | (o.production_kgco2e.notna() & ((o.production_kgco2e - chosen).abs() > 0.5))),
+        ("CRADLE_TO_GATE_COLS", "integrity", "Cradle-to-gate columns do not match the chosen method",
+         "Total must equal the weight- or spend-based figure for the row's method (blank only when unallocated); unit x units must equal the total.",
+         lambda: (o.Total_Cradle_to_Gate_Emissions_kgCO2e.isna() != (o.production_basis == "Unallocated"))
+         | (o.Total_Cradle_to_Gate_Emissions_kgCO2e.notna() & ((o.Total_Cradle_to_Gate_Emissions_kgCO2e - chosen).abs() > 0.5))
+         | (o.Unit_Cradle_to_Gate_Emissions_kgCO2e.notna() & ((o.Unit_Cradle_to_Gate_Emissions_kgCO2e * o.units_est
+                                                              - o.Total_Cradle_to_Gate_Emissions_kgCO2e).abs() > 1))),
         ("WEIGHT_SPEND_GAP", "review", "Weight-based and spend-based differ more than 5x",
          "Usually a wrong recipe, a wrong weight or a wrong spend sector.",
          lambda: wb & ((o.weight_vs_spend > 5) | (o.weight_vs_spend < 0.2))),

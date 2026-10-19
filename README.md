@@ -150,6 +150,16 @@ Bands: High >= 70 · Medium 40-69 · Low 1-39 · None = 0 (not yet quantified, o
 The score measures how sure we are about this row's mapping and quantities; it does not rank
 the calculation methods against each other.
 
+## Annual-report columns: cradle-to-gate emissions
+Sum these two columns to report (`nfi_classified.csv`; the same names appear in `nfi_lookup.csv` and
+`nfi_item_summary.csv`, and all three add up to the same total):
+- `Total_Cradle_to_Gate_Emissions_kgCO2e` - kg CO2e for the line, from the best available method:
+  material recipe x kg where the item has a recipe, a weight and an open factor, otherwise OpenCEDA
+  spend-based. **Blank, not zero,** for unallocated lines (adjustments, unclear, no value).
+- `Unit_Cradle_to_Gate_Emissions_kgCO2e` - the same per unit (`units_est`), so total = unit x units.
+- `Cradle_to_Gate_Method` and `Cradle_to_Gate_Source` say which method and which factors were used.
+The other method is kept as a comparison in `weight_kgco2e` / `spend_kgco2e`; do not add it on top.
+
 ## Production emissions (manufacturing category, material recipes)
 Every item has a `mfg_category` in `vocabulary.csv` (with a one-line `mfg_note`) and an OpenCEDA sector.
 

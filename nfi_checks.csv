@@ -5,6 +5,7 @@ APPROACH_BASIS,integrity,Emissions approach contradicts the weight source,COMEXT
 TOTAL_KG,integrity,Total kg is not units x kg per unit,total_kg_est must equal units_est x kg_per_unit (rounding allowed).,0,0.0,0.0
 PROXY_TOTAL,integrity,Price-proxy total kg is not value x FX / EUR per kg,For the price proxy the quantity cancels out; a difference means the order value was counted twice.,0,0.0,0.0
 PRODUCTION_BASIS,integrity,Production basis contradicts the manufacturing category,"Weight-based needs category A or B, a production recipe and a weight; the total must equal the chosen method.",0,0.0,0.0
+CRADLE_TO_GATE_COLS,integrity,Cradle-to-gate columns do not match the chosen method,Total must equal the weight- or spend-based figure for the row's method (blank only when unallocated); unit x units must equal the total.,0,0.0,0.0
 WEIGHT_SPEND_GAP,review,Weight-based and spend-based differ more than 5x,"Usually a wrong recipe, a wrong weight or a wrong spend sector.",418,4142744.0,0.07305530946090509
 COMEXT_PRICE_MISMATCH,review,WFP price per kg is 0.2-5x off Comext,"Usually the wrong CN8 within the 6-digit code, or a quantity in another unit.",157,956341.0,0.016864616231452252
 QTY_UNIT_SUSPECT,review,Price per kg far from the item's own median,"The quantity may be in kg, m, m2 or pallets rather than pieces.",179,2741837.0,0.04835098440221255

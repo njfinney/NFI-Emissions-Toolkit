@@ -1,0 +1,251 @@
+country_code,un_subregion,in_ceda_country_list,country_name
+ABW,Caribbean,False,
+AFG,Central Asia,True,Afghanistan
+AGO,Middle Africa,True,Angola
+AIA,Caribbean,False,
+ALA,Northern Europe,False,
+ALB,Southern Europe,True,Albania
+AND,Southern Europe,False,
+ARE,Western Asia,True,United Arab Emirates
+ARG,South America,True,Argentina
+ARM,Western Asia,False,
+ASM,Polynesia,False,
+ATA,Antarctica,False,
+ATF,Eastern Africa,False,
+ATG,Caribbean,True,Antigua and Barbuda
+AUS,Australia and New Zealand,True,Australia
+AUT,Western Europe,True,Austria
+AZE,Western Asia,False,
+BDI,Eastern Africa,True,Burundi
+BEL,Western Europe,True,Belgium
+BEN,Western Africa,True,Benin
+BES,Caribbean,False,
+BFA,Western Africa,True,Burkina Faso
+BGD,Central Asia,True,Bangladesh
+BGR,Eastern Europe,True,Bulgaria
+BHR,Western Asia,True,Bahrain
+BHS,Caribbean,True,Bahamas
+BIH,Southern Europe,False,
+BLM,Caribbean,False,
+BLR,Eastern Europe,False,
+BLZ,Central America,True,Belize
+BMU,Northern America,False,
+BOL,South America,True,Bolivia
+BRA,South America,True,Brazil
+BRB,Caribbean,True,Barbados
+BRN,South-Eastern Asia,False,
+BTN,Central Asia,True,Bhutan
+BVT,Southern Africa,False,
+BWA,Southern Africa,False,
+CAF,Middle Africa,True,Central African Republic
+CAN,Northern America,True,Canada
+CCK,Australia and New Zealand,False,
+CHE,Western Europe,True,Switzerland
+CHL,South America,True,Chile
+CHN,Eastern Asia,True,China
+CIV,Western Africa,True,Cote d'Ivoire
+CMR,Middle Africa,True,Cameroon
+COD,Middle Africa,False,
+COG,Middle Africa,True,Congo
+COK,Polynesia,False,
+COL,South America,True,Colombia
+COM,Eastern Africa,False,
+CPV,Western Africa,False,
+CRI,Central America,True,Costa Rica
+CUB,Caribbean,False,
+CUW,Caribbean,False,
+CXR,Australia and New Zealand,False,
+CYM,Caribbean,False,
+CYP,Western Asia,True,Cyprus
+CZE,Eastern Europe,True,Czech Republic
+DEU,Western Europe,True,Germany
+DJI,Eastern Africa,False,
+DMA,Caribbean,True,Dominica
+DNK,Northern Europe,True,Denmark
+DOM,Caribbean,True,Dominican Republic
+DZA,Northern Africa,True,Algeria
+ECU,South America,True,Ecuador
+EGY,Northern Africa,True,Egypt
+ERI,Eastern Africa,False,
+ESH,Northern Africa,False,
+ESP,Southern Europe,True,Spain
+EST,Northern Europe,True,Estonia
+ETH,Eastern Africa,True,Ethiopia
+FIN,Northern Europe,True,Finland
+FJI,Melanesia,True,Fiji
+FLK,South America,False,
+FRA,Western Europe,True,France
+FRO,Northern Europe,False,
+FSM,Micronesia,False,
+GAB,Middle Africa,True,Gabon
+GBR,Northern Europe,True,United Kingdom
+GEO,Western Asia,False,
+GGY,Northern Europe,False,
+GHA,Western Africa,False,
+GIB,Southern Europe,False,
+GIN,Western Africa,True,Guinea
+GLP,Caribbean,False,
+GMB,Western Africa,True,Gambia
+GNB,Western Africa,True,Guinea-Bissau
+GNQ,Middle Africa,True,Equatorial Guinea
+GRC,Southern Europe,True,Greece
+GRD,Caribbean,True,Grenada
+GRL,Northern America,False,
+GTM,Central America,True,Guatemala
+GUF,South America,False,
+GUM,Micronesia,False,
+GUY,South America,False,
+HKG,Eastern Asia,True,"Hong Kong, China"
+HMD,Australia and New Zealand,False,
+HND,Central America,True,Honduras
+HRV,Southern Europe,True,Croatia
+HTI,Caribbean,True,Haiti
+HUN,Eastern Europe,True,Hungary
+IDN,South-Eastern Asia,True,Indonesia
+IMN,Northern Europe,False,
+IND,Central Asia,True,India
+IOT,Eastern Africa,False,
+IRL,Northern Europe,True,Ireland
+IRN,Central Asia,True,"Iran, Islamic Republic of"
+IRQ,Western Asia,True,Iraq
+ISL,Northern Europe,True,Iceland
+ISR,Western Asia,True,Israel
+ITA,Southern Europe,True,Italy
+JAM,Caribbean,True,Jamaica
+JEY,Northern Europe,False,
+JOR,Western Asia,True,Jordan
+JPN,Eastern Asia,True,Japan
+KAZ,Central Asia,True,Kazakhstan
+KEN,Eastern Africa,True,Kenya
+KGZ,Central Asia,False,
+KHM,South-Eastern Asia,True,Cambodia
+KIR,Micronesia,True,Kiribati
+KNA,Caribbean,True,Saint Kitts and Nevis
+KOR,Eastern Asia,True,South Korea
+KWT,Western Asia,True,Kuwait
+LAO,South-Eastern Asia,True,Lao People’s Democratic Rep.
+LBN,Western Asia,True,Lebanon
+LBR,Western Africa,False,
+LBY,Northern Africa,False,
+LCA,Caribbean,True,Saint Lucia
+LIE,Western Europe,False,
+LKA,Central Asia,True,Sri Lanka
+LSO,Southern Africa,True,Lesotho
+LTU,Northern Europe,True,Lithuania
+LUX,Western Europe,True,Luxembourg
+LVA,Northern Europe,True,Latvia
+MAC,Eastern Asia,False,
+MAF,Caribbean,False,
+MAR,Northern Africa,True,Morocco
+MCO,Western Europe,False,
+MDA,Eastern Europe,True,"Moldova, Republic of"
+MDG,Eastern Africa,False,
+MDV,Central Asia,True,Maldives
+MEX,Central America,True,Mexico
+MHL,Micronesia,False,
+MKD,Southern Europe,True,"Macedonia, the former Yugoslav Republic of"
+MLI,Western Africa,True,Mali
+MLT,Southern Europe,True,Malta
+MMR,South-Eastern Asia,True,Myanmar
+MNE,Southern Europe,False,
+MNG,Eastern Asia,True,Mongolia
+MNP,Micronesia,False,
+MOZ,Eastern Africa,False,
+MRT,Western Africa,False,
+MSR,Caribbean,False,
+MTQ,Caribbean,False,
+MUS,Eastern Africa,True,Mauritius
+MWI,Eastern Africa,True,Malawi
+MYS,South-Eastern Asia,True,Malaysia
+MYT,Eastern Africa,False,
+NAM,Southern Africa,True,Namibia
+NCL,Melanesia,False,
+NER,Western Africa,True,Niger
+NFK,Australia and New Zealand,False,
+NGA,Western Africa,True,Nigeria
+NIC,Central America,True,Nicaragua
+NIU,Polynesia,False,
+NLD,Western Europe,True,Netherlands
+NOR,Northern Europe,True,Norway
+NPL,Central Asia,True,Nepal
+NRU,Micronesia,True,Nauru
+NZL,Australia and New Zealand,True,New Zealand
+OMN,Western Asia,True,Oman
+PAK,Central Asia,True,Pakistan
+PAN,Central America,False,
+PCN,Polynesia,False,
+PER,South America,True,Peru
+PHL,South-Eastern Asia,True,Philippines
+PLW,Micronesia,False,
+PNG,Melanesia,True,Papua New Guinea
+POL,Eastern Europe,True,Poland
+PRI,Caribbean,False,
+PRK,Eastern Asia,False,
+PRT,Southern Europe,True,Portugal
+PRY,South America,True,Paraguay
+PSE,Western Asia,False,
+PYF,Polynesia,False,
+QAT,Western Asia,True,Qatar
+REU,Eastern Africa,False,
+ROU,Eastern Europe,True,Romania
+RUS,Eastern Europe,True,Russian Federation
+RWA,Eastern Africa,True,Rwanda
+SAU,Western Asia,True,Saudi Arabia
+SDN,Northern Africa,False,
+SEN,Western Africa,True,Senegal
+SGP,South-Eastern Asia,True,Singapore
+SGS,South America,False,
+SHN,Western Africa,False,
+SJM,Northern Europe,False,
+SLB,Melanesia,True,Solomon Islands
+SLE,Western Africa,True,Sierra Leone
+SLV,Central America,True,El Salvador
+SMR,Southern Europe,False,
+SOM,Eastern Africa,False,
+SPM,Northern America,False,
+SRB,Southern Europe,False,
+SSD,Eastern Africa,False,
+STP,Middle Africa,False,
+SUR,South America,False,
+SVK,Eastern Europe,True,Slovak Republic
+SVN,Southern Europe,True,Slovenia
+SWE,Northern Europe,True,Sweden
+SWZ,Southern Africa,True,Swaziland
+SXM,Caribbean,False,
+SYC,Eastern Africa,True,Seychelles
+SYR,Western Asia,False,
+TCA,Caribbean,False,
+TCD,Middle Africa,True,Chad
+TGO,Western Africa,True,Togo
+THA,South-Eastern Asia,True,Thailand
+TJK,Central Asia,False,
+TKL,Polynesia,False,
+TKM,Central Asia,False,
+TLS,South-Eastern Asia,True,Timor-Leste
+TON,Polynesia,False,
+TTO,Caribbean,True,Trinidad and Tobago
+TUN,Northern Africa,True,Tunisia
+TUR,Western Asia,True,Turkey
+TUV,Polynesia,False,
+TWN,Eastern Asia,True,Chinese Taipei
+TZA,Eastern Africa,True,Tanzania_United Republic of
+UGA,Eastern Africa,True,Uganda
+UKR,Eastern Europe,True,Ukraine
+UMI,Micronesia,False,
+URY,South America,True,Uruguay
+USA,Northern America,True,United States
+UZB,Central Asia,False,
+VAT,Southern Europe,False,
+VCT,Caribbean,True,Saint Vincent and the Grenadines
+VEN,South America,False,
+VGB,Caribbean,False,
+VIR,Caribbean,False,
+VNM,South-Eastern Asia,True,Viet Nam
+VUT,Melanesia,True,Vanuatu
+WLF,Polynesia,False,
+WSM,Polynesia,True,Samoa
+XXK,Southern Europe,False,
+YEM,Western Asia,False,
+ZAF,Southern Africa,True,South Africa
+ZMB,Eastern Africa,False,
+ZWE,Eastern Africa,False,

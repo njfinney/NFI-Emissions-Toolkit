@@ -1,0 +1,188 @@
+item_id,role,material_key,mass_share,use,share_basis
+KIT_SHELTER_TOOL,primary,steel,0.8,production,"Unqualified Estimate: steel ~80%, handles ~15%, rope ~5%"
+KIT_SHELTER_TOOL,secondary,wood,0.15,production,"Unqualified Estimate: steel ~80%, handles ~15%, rope ~5%"
+KIT_SHELTER_TOOL,tertiary,pp,0.05,production,"Unqualified Estimate: steel ~80%, handles ~15%, rope ~5%"
+KIT_SHELTER,primary,hdpe,0.6,production,"Unqualified Estimate: tarpaulins ~85% (HDPE/LDPE), rope ~15%"
+KIT_SHELTER,secondary,ldpe,0.25,production,"Unqualified Estimate: tarpaulins ~85% (HDPE/LDPE), rope ~15%"
+KIT_SHELTER,tertiary,pp,0.15,production,"Unqualified Estimate: tarpaulins ~85% (HDPE/LDPE), rope ~15%"
+KIT_KITCHEN,primary,stainless_steel,0.85,production,"Unqualified Estimate: stainless ~85%, plastic ~15%"
+KIT_KITCHEN,secondary,pp,0.15,production,"Unqualified Estimate: stainless ~85%, plastic ~15%"
+TENT_CLASSROOM,primary,steel,0.5,production,"Unqualified Estimate: steel frame ~50%, polyester fabric ~30%, PVC coating ~20%"
+TENT_CLASSROOM,secondary,polyester_textile,0.3,production,"Unqualified Estimate: steel frame ~50%, polyester fabric ~30%, PVC coating ~20%"
+TENT_CLASSROOM,tertiary,pvc,0.2,production,"Unqualified Estimate: steel frame ~50%, polyester fabric ~30%, PVC coating ~20%"
+TENT_MSU,primary,steel,0.6,production,"Unqualified Estimate: steel frame ~60%, PVC-coated polyester ~40%"
+TENT_MSU,secondary,pvc,0.25,production,"Unqualified Estimate: steel frame ~60%, PVC-coated polyester ~40%"
+TENT_MSU,tertiary,polyester_textile,0.15,production,"Unqualified Estimate: steel frame ~60%, PVC-coated polyester ~40%"
+TENT_FAMILY,primary,polyester_textile,0.36,production,"Unqualified Estimate: UNHCR family tent: polycotton canvas ~55% (65/35), steel poles ~30%, PE groundsheet ~15%"
+TENT_FAMILY,secondary,steel,0.3,production,"Unqualified Estimate: UNHCR family tent: polycotton canvas ~55% (65/35), steel poles ~30%, PE groundsheet ~15%"
+TENT_FAMILY,tertiary,cotton_textile,0.19,production,"Unqualified Estimate: UNHCR family tent: polycotton canvas ~55% (65/35), steel poles ~30%, PE groundsheet ~15%"
+TENT_FAMILY,quaternary,ldpe,0.15,production,"Unqualified Estimate: UNHCR family tent: polycotton canvas ~55% (65/35), steel poles ~30%, PE groundsheet ~15%"
+TENT_CAMPING,primary,polyester_textile,0.75,production,"Unqualified Estimate: fabric ~75%, poles ~15%, floor ~10%"
+TENT_CAMPING,secondary,aluminium,0.15,production,"Unqualified Estimate: fabric ~75%, poles ~15%, floor ~10%"
+TENT_CAMPING,tertiary,ldpe,0.1,production,"Unqualified Estimate: fabric ~75%, poles ~15%, floor ~10%"
+TENT,primary,polyester_textile,0.36,production,"Unqualified Estimate: UNHCR family tent: polycotton canvas ~55% (65/35), steel poles ~30%, PE groundsheet ~15%"
+TENT,secondary,steel,0.3,production,"Unqualified Estimate: UNHCR family tent: polycotton canvas ~55% (65/35), steel poles ~30%, PE groundsheet ~15%"
+TENT,tertiary,cotton_textile,0.19,production,"Unqualified Estimate: UNHCR family tent: polycotton canvas ~55% (65/35), steel poles ~30%, PE groundsheet ~15%"
+TENT,quaternary,ldpe,0.15,production,"Unqualified Estimate: UNHCR family tent: polycotton canvas ~55% (65/35), steel poles ~30%, PE groundsheet ~15%"
+TARP_FUMIGATION,primary,pvc,0.65,production,"Unqualified Estimate: PVC coating ~65%, polyester base fabric ~35%"
+TARP_FUMIGATION,secondary,polyester_textile,0.35,production,"Unqualified Estimate: PVC coating ~65%, polyester base fabric ~35%"
+TARP_TRUCK,primary,pvc,0.65,production,"Unqualified Estimate: PVC coating ~65%, polyester base fabric ~35%"
+TARP_TRUCK,secondary,polyester_textile,0.35,production,"Unqualified Estimate: PVC coating ~65%, polyester base fabric ~35%"
+GEOMEMBRANE,primary,hdpe,1,production,Single material
+PLASTIC_SHEET,primary,ldpe,1,production,Single material
+TARPAULIN,primary,hdpe,0.7,production,"Unqualified Estimate: woven HDPE scrim ~70%, LDPE lamination ~30%"
+TARPAULIN,secondary,ldpe,0.3,production,"Unqualified Estimate: woven HDPE scrim ~70%, LDPE lamination ~30%"
+BLANKET_HT,primary,polyester_textile,1,production,Single material
+BLANKET_MT,primary,polyester_textile,1,production,Single material
+BLANKET,primary,polyester_textile,1,production,Single material
+MOSQUITO_NET,primary,polyester_textile,1,production,Single material
+SLEEPING_BAG,primary,polyester_textile,1,production,Single material
+SLEEPING_MAT,primary,pp,1,production,Single material
+MATTRESS,primary,pu_foam,0.85,production,"Unqualified Estimate: foam ~85%, cover ~15%"
+MATTRESS,secondary,polyester_textile,0.15,production,"Unqualified Estimate: foam ~85%, cover ~15%"
+CAMP_BED,primary,steel,0.65,production,"Unqualified Estimate: frame ~65%, canvas ~35%"
+CAMP_BED,secondary,polyester_textile,0.35,production,"Unqualified Estimate: frame ~65%, canvas ~35%"
+STOVE_HEATER,primary,steel,1,production,Single material
+STOVE_INSTITUTIONAL,primary,steel,0.6,production,"Unqualified Estimate: steel ~60%, refractory / clay ~40%"
+STOVE_INSTITUTIONAL,secondary,fired_clay,0.4,production,"Unqualified Estimate: steel ~60%, refractory / clay ~40%"
+STOVE_GAS,primary,steel,0.9,production,"Unqualified Estimate: steel ~90%, aluminium / brass burner ~10%"
+STOVE_GAS,secondary,aluminium,0.1,production,"Unqualified Estimate: steel ~90%, aluminium / brass burner ~10%"
+STOVE_ELECTRIC,primary,electrical_large,1,comparison,Unqualified Estimate: BEIS large electrical items as comparison
+STOVE,primary,steel,0.85,production,"Unqualified Estimate: steel body ~85%, clay / refractory liner ~15%"
+STOVE,secondary,fired_clay,0.15,production,"Unqualified Estimate: steel body ~85%, clay / refractory liner ~15%"
+OVEN,primary,electrical_large,1,comparison,Unqualified Estimate: BEIS large electrical items as comparison
+FREEZER,primary,fridges,1,comparison,Unqualified Estimate: BEIS fridges and freezers as comparison
+COOKING_POT,primary,stainless_steel,1,production,Single material (CN 7323 93 is stainless steel)
+UTENSIL,primary,stainless_steel,1,production,Single material (CN 7323 93 is stainless steel)
+KNIFE,primary,stainless_steel,0.8,production,"Unqualified Estimate: blade ~80%, handle ~20%"
+KNIFE,secondary,pp,0.2,production,"Unqualified Estimate: blade ~80%, handle ~20%"
+CHOPPING_BOARD,primary,hdpe,1,production,Single material
+PLATE,primary,pp,1,production,Single material
+FOOD_TRAY,primary,pp,1,production,Single material
+CUP,primary,pp,1,production,Single material
+THERMOS,primary,stainless_steel,0.5,production,"Unqualified Estimate: liner ~50%, body ~50%"
+THERMOS,secondary,pp,0.5,production,"Unqualified Estimate: liner ~50%, body ~50%"
+APRON,primary,cotton_textile,1,production,Single material
+JERRYCAN,primary,hdpe,1,production,Single material
+BUCKET,primary,hdpe,1,production,Single material
+BASIN_ALU,primary,aluminium,1,production,Single material
+BASIN,primary,hdpe,1,production,Single material
+WATER_TANK,primary,hdpe,1,production,Single material
+LATRINE_SLAB,primary,pp,1,production,Single material
+PIPE,primary,pvc,1,production,Single material
+VALVE,primary,copper,0.8,production,"Unqualified Estimate: brass ~80%, steel ~20%"
+VALVE,secondary,steel,0.2,production,"Unqualified Estimate: brass ~80%, steel ~20%"
+PIPE_FITTING,primary,pvc,1,production,Single material
+SOLAR_LANTERN,primary,electrical_small,1,comparison,Unqualified Estimate: BEIS small electrical items as comparison
+INVERTER,primary,electrical_small,1,comparison,Unqualified Estimate: BEIS small electrical items as comparison
+LED_LAMP,primary,electrical_small,1,comparison,Unqualified Estimate: BEIS small electrical items as comparison
+CABLE,primary,copper,0.6,production,"Unqualified Estimate: copper ~60%, PVC ~40%"
+CABLE,secondary,pvc,0.4,production,"Unqualified Estimate: copper ~60%, PVC ~40%"
+ELECTRICAL_ACC,primary,electrical_small,1,comparison,Unqualified Estimate: BEIS small electrical items as comparison
+CONTAINER_SHIPPING,primary,steel,1,production,Single material
+PALLET_PLASTIC,primary,hdpe,1,production,Single material
+PALLET_WOOD,primary,wood,1,production,"Single material (nails, graphite ignored)"
+FLOORING_MODULAR,primary,pp,1,production,Single material
+SACK,primary,pp,1,production,Single material
+GARBAGE_BAG,primary,ldpe,1,production,Single material
+CARDBOARD_BOX,primary,board,1,production,Single material
+STORAGE_BOX,primary,pp,1,production,Single material
+ROPE,primary,pp,1,production,Single material
+SILO,primary,steel,1,production,Single material
+AGRI_NET,primary,hdpe,1,production,Single material
+HAND_TOOL_HOE,primary,steel,0.7,production,"Unqualified Estimate: head ~70%, handle ~30%"
+HAND_TOOL_HOE,secondary,wood,0.3,production,"Unqualified Estimate: head ~70%, handle ~30%"
+HAND_TOOL_SHOVEL,primary,steel,0.75,production,"Unqualified Estimate: blade ~75%, handle ~25%"
+HAND_TOOL_SHOVEL,secondary,wood,0.25,production,"Unqualified Estimate: blade ~75%, handle ~25%"
+HAND_TOOL_MACHETE,primary,steel,0.9,production,"Unqualified Estimate: blade ~90%, handle ~10%"
+HAND_TOOL_MACHETE,secondary,pp,0.1,production,"Unqualified Estimate: blade ~90%, handle ~10%"
+HAND_TOOL_AXE,primary,steel,0.7,production,"Unqualified Estimate: head ~70%, handle ~30%"
+HAND_TOOL_AXE,secondary,wood,0.3,production,"Unqualified Estimate: head ~70%, handle ~30%"
+WHEELBARROW,primary,steel,0.85,production,"Unqualified Estimate: steel ~85%, tyre ~15%"
+WHEELBARROW,secondary,rubber,0.15,production,"Unqualified Estimate: steel ~85%, tyre ~15%"
+HAND_TOOL_OTHER,primary,steel,0.85,production,"Unqualified Estimate: steel ~85%, handle ~15%"
+HAND_TOOL_OTHER,secondary,pp,0.15,production,"Unqualified Estimate: steel ~85%, handle ~15%"
+POWER_TOOL,primary,electrical_small,1,comparison,Unqualified Estimate: BEIS small electrical items as comparison
+PADLOCK,primary,steel,0.8,production,"Unqualified Estimate: steel ~80%, brass ~20%"
+PADLOCK,secondary,copper,0.2,production,"Unqualified Estimate: steel ~80%, brass ~20%"
+HINGE,primary,steel,1,production,Single material
+NAIL,primary,steel,1,production,Single material
+WIRE_MESH,primary,steel,1,production,Single material
+ROOF_SHEET,primary,steel,1,production,Single material
+CEMENT,primary,cement,1,production,Single material
+SAND_GRAVEL,primary,aggregates,1,production,Single material
+TILE_ADHESIVE,primary,aggregates,0.7,production,"Unqualified Estimate: cement ~30%, sand / filler ~70%"
+TILE_ADHESIVE,secondary,cement,0.3,production,"Unqualified Estimate: cement ~30%, sand / filler ~70%"
+PLASTER,primary,gypsum,1,production,Single material
+DRYWALL,primary,gypsum,1,production,Single material
+DOOR,primary,wood,0.9,production,"Unqualified Estimate: wood ~90%, hardware ~10%"
+DOOR,secondary,steel,0.1,production,"Unqualified Estimate: wood ~90%, hardware ~10%"
+WINDOW,primary,wood,0.55,production,"Unqualified Estimate: frame ~55%, glass ~40%, hardware ~5%"
+WINDOW,secondary,glass,0.4,production,"Unqualified Estimate: frame ~55%, glass ~40%, hardware ~5%"
+WINDOW,tertiary,steel,0.05,production,"Unqualified Estimate: frame ~55%, glass ~40%, hardware ~5%"
+TIMBER,primary,wood,1,production,"Single material (nails, graphite ignored)"
+BICYCLE,primary,steel,0.8,production,"Unqualified Estimate: steel ~80%, tyres ~15%, plastic ~5%"
+BICYCLE,secondary,rubber,0.15,production,"Unqualified Estimate: steel ~80%, tyres ~15%, plastic ~5%"
+BICYCLE,tertiary,plastic_avg,0.05,production,"Unqualified Estimate: steel ~80%, tyres ~15%, plastic ~5%"
+VEHICLE,primary,steel,0.9,production,"Unqualified Estimate: steel ~90%, tyres ~10%"
+VEHICLE,secondary,rubber,0.1,production,"Unqualified Estimate: steel ~90%, tyres ~10%"
+HOIST,primary,steel,1,production,Single material
+PREFAB,primary,steel,0.75,production,"Unqualified Estimate: steel ~75%, insulation ~15%, wood ~10%"
+PREFAB,secondary,insulation,0.15,production,"Unqualified Estimate: steel ~75%, insulation ~15%, wood ~10%"
+PREFAB,tertiary,wood,0.1,production,"Unqualified Estimate: steel ~75%, insulation ~15%, wood ~10%"
+INCINERATOR,primary,steel,0.7,production,"Unqualified Estimate: steel ~70%, refractory ~30%"
+INCINERATOR,secondary,fired_clay,0.3,production,"Unqualified Estimate: steel ~70%, refractory ~30%"
+KITCHEN_APPLIANCE,primary,electrical_small,1,comparison,Unqualified Estimate: BEIS small electrical items as comparison
+STEEL_SECTION,primary,steel,1,production,Single material
+WALL_PANEL,primary,steel,0.5,production,"Unqualified Estimate: sandwich panel: skins ~50%, core ~50%"
+WALL_PANEL,secondary,insulation,0.5,production,"Unqualified Estimate: sandwich panel: skins ~50%, core ~50%"
+GAS_CYLINDER,primary,steel,1,production,Single material
+LADDER,primary,aluminium,1,production,Single material
+SPORTS,primary,rubber,0.6,production,"Unqualified Estimate: rubber ~60%, cover ~40%"
+SPORTS,secondary,polyester_textile,0.4,production,"Unqualified Estimate: rubber ~60%, cover ~40%"
+SIGNBOARD,primary,pvc,0.5,production,"Unqualified Estimate: banner ~50%, post ~50%"
+SIGNBOARD,secondary,steel,0.5,production,"Unqualified Estimate: banner ~50%, post ~50%"
+EXERCISE_BOOK,primary,paper,1,production,Single material
+REGISTER_BOOK,primary,paper,1,production,Single material
+PAPER,primary,paper,1,production,Single material
+ENVELOPE,primary,paper,1,production,Single material
+FILE_FOLDER,primary,board,1,production,Single material
+PEN,primary,plastic_avg,1,production,Single material (metal tip / ball ignored)
+PENCIL,primary,wood,1,production,"Single material (nails, graphite ignored)"
+CHALK,primary,gypsum,1,production,Single material
+ERASER_SHARPENER,primary,pvc,1,production,Single material
+RULER,primary,ps,1,production,Single material
+STAPLER,primary,steel,1,production,Single material
+SCISSORS,primary,stainless_steel,0.8,production,"Unqualified Estimate: blade ~80%, handle ~20%"
+SCISSORS,secondary,pp,0.2,production,"Unqualified Estimate: blade ~80%, handle ~20%"
+CALCULATOR,primary,electrical_small,1,comparison,Unqualified Estimate: BEIS small electrical items as comparison
+SCHOOL_BAG,primary,polyester_textile,1,production,Single material
+BLACKBOARD,primary,wood,0.8,production,"Unqualified Estimate: board ~80%, frame ~20%"
+BLACKBOARD,secondary,steel,0.2,production,"Unqualified Estimate: board ~80%, frame ~20%"
+DESK,primary,wood,0.8,production,"Unqualified Estimate: wood ~80%, steel ~20%"
+DESK,secondary,steel,0.2,production,"Unqualified Estimate: wood ~80%, steel ~20%"
+TABLE,primary,wood,0.8,production,"Unqualified Estimate: wood ~80%, steel ~20%"
+TABLE,secondary,steel,0.2,production,"Unqualified Estimate: wood ~80%, steel ~20%"
+CHAIR,primary,wood,0.7,production,"Unqualified Estimate: wood ~70%, steel ~30%"
+CHAIR,secondary,steel,0.3,production,"Unqualified Estimate: wood ~70%, steel ~30%"
+SHELF,primary,wood,0.8,production,"Unqualified Estimate: wood ~80%, steel ~20%"
+SHELF,secondary,steel,0.2,production,"Unqualified Estimate: wood ~80%, steel ~20%"
+IT_EQUIP,primary,electrical_it,1,comparison,Unqualified Estimate: BEIS IT electrical items as comparison
+MEGAPHONE,primary,electrical_small,1,comparison,Unqualified Estimate: BEIS small electrical items as comparison
+AUDIO,primary,electrical_small,1,comparison,Unqualified Estimate: BEIS small electrical items as comparison
+WHISTLE,primary,plastic_avg,1,production,Single material (metal tip / ball ignored)
+THREAD,primary,polyester_textile,1,production,Single material
+FABRIC,primary,cotton_textile,1,production,Single material
+BEADS,primary,glass,1,production,Single material (CN 7018 10 glass beads)
+NEEDLE,primary,steel,1,production,Single material
+GLOVES,primary,cotton_textile,1,production,Single material
+FOOTWEAR,primary,pvc,1,production,Single material
+RAINWEAR,primary,pvc,0.6,production,"Unqualified Estimate: coating ~60%, fabric ~40%"
+RAINWEAR,secondary,polyester_textile,0.4,production,"Unqualified Estimate: coating ~60%, fabric ~40%"
+PPE,primary,pp,1,production,Single material
+CLOTHING,primary,cotton_textile,1,production,Single material
+HOSE,primary,pvc,1,production,Single material
+SANITARY_PAD,primary,paper,0.5,production,"Unqualified Estimate: pulp ~50%, nonwoven ~30%, film ~20%"
+SANITARY_PAD,secondary,pp,0.3,production,"Unqualified Estimate: pulp ~50%, nonwoven ~30%, film ~20%"
+SANITARY_PAD,tertiary,ldpe,0.2,production,"Unqualified Estimate: pulp ~50%, nonwoven ~30%, film ~20%"
+FIRE_EXT,primary,steel,1,production,Single material

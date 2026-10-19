@@ -1,0 +1,54 @@
+100_PST	Hundred items
+1000_KWH	Thousand kilowatt hours
+1000_L	Thousand litres
+1000_M3	Thousand cubic metres
+1000_PST	Thousand items
+CEEL	Number of cells
+CGT	Compensated Gross Tonne
+CK	Carats (1 metric carat = 2 × 10-4 kg)
+CTL	Carrying capacity in tonnes
+G	Gram
+GI_FS	Gram of fissile isotopes
+GRT	Gross registered ton
+GT	Gross tonnage
+KG	Kilogram
+KG_90PCT_SDT	Kilogram of substance 90% dry
+KG_ACT_SUBST	Kilogram of subststance activated
+KG_AL2O3	Kilogram of dialuminium trioxide
+KG_B2O3	Kilogram of diboron trioxide
+KG_BACO3	Kilogram of barium carbonate
+KG_C5H14CLNO	Kilogram of choline chloride
+KG_CL	Kilogram of chlorine
+KG_F	Kilogram of fluorine
+KG_H2O2	Kilogram of hydrogen peroxide
+KG_H2SO4	Kilogram of sulfuric acid
+KG_HCL	Kilogram of hydrogen chloride
+KG_HF	Kilogram of hydrogen fluoride
+KG_K2CO3	Kilogram of potassium carbonate
+KG_K2O	Kilogram of potassium oxide
+KG_KOH	Kilogram of potassium hydroxide
+KG_MET_AM	Kilogram of methylamines
+KG_N	Kilogram of nitrogen
+KG_NA2CO3	Kilogram of sodium carbonate
+KG_NA2S2O5	Kilogram of sodium pyrosulphide
+KG_NAOH	Kilogram of sodium hydroxide
+KG_NET_EDA	Kilogram drained net weight
+KG_P2O5	Kilogram of phosphorus pentoxide
+KG_PBO	Kilogram of lead oxide
+KG_S	Kilogram of sulphur
+KG_SIO2	Kilogram of silicon dioxide
+KG_SO2	Kilogram of sulphur dioxide
+KG_TIO2	Kilogram of titanium dioxide
+KG_U	Kilogram of uranium
+KM	Kilometer
+KW	Kilowatt
+L	Litre
+L_ALC_100PCT	Litre pure (100 %) alcohol
+M	Metre
+M2	Square metre
+M3	Cubic metre
+NO_SU	No supplementary unit
+PA	Number of pairs
+PST	Number of items
+T_CO2	Tonne of CO2 equivalent
+TJ	Terajoule (gross calorific value)

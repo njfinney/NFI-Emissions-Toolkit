@@ -1,3 +1,5 @@
 comext_dat/
 .pytest_cache/
 factor_sources/base_carbone.csv
+__pycache__/
+*.pyc

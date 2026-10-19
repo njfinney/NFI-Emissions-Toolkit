@@ -90,10 +90,16 @@ Review each change as a pull request: the diff of `nfi_lookup.csv` shows exactly
 descriptions changed item, weight or score.
 
 ### Review page
+Private link: https://claude.ai/artifact/169mLsCZBxUgYFtKMbNB6Q (only people it is shared with can open it;
+share it from the page's Share menu). The page is built from this repo by `make review` and republished
+from `nfi_review.html`. It is not on GitHub Pages: a Pages site from a private repo would be public.
+
 `nfi_review.html` is self-contained (open it in a browser, or publish it). Tabs: Overview
 (value by approach, confidence bands, WFP vs Comext price per kg, where the weight sits), Checks
 (integrity rules that must be 0, review flags, info), Rows (filter, sort, row detail with the
-score breakdown), Items (spread of kg/unit and price per kg inside each item).
+score breakdown), Items (spread of kg/unit and price per kg inside each item), Emissions (click-through
+treemap and table: category -> item -> recipe component, or material -> item; component kg CO2e =
+item kg x mass share x material factor; spend-based items show their OpenCEDA sector).
 
 ## Emissions approach (first rule that applies)
 1. **Unallocated** - scope UNCLEAR, contract adjustments (contingency, variation, retention, tax,
@@ -143,6 +149,16 @@ score breakdown), Items (spread of kg/unit and price per kg inside each item).
 Bands: High >= 70 · Medium 40-69 · Low 1-39 · None = 0 (not yet quantified, or Unallocated).
 The score measures how sure we are about this row's mapping and quantities; it does not rank
 the calculation methods against each other.
+
+## Annual-report columns: cradle-to-gate emissions
+Sum these two columns to report (`nfi_classified.csv`; the same names appear in `nfi_lookup.csv` and
+`nfi_item_summary.csv`, and all three add up to the same total):
+- `Total_Cradle_to_Gate_Emissions_kgCO2e` - kg CO2e for the line, from the best available method:
+  material recipe x kg where the item has a recipe, a weight and an open factor, otherwise OpenCEDA
+  spend-based. **Blank, not zero,** for unallocated lines (adjustments, unclear, no value).
+- `Unit_Cradle_to_Gate_Emissions_kgCO2e` - the same per unit (`units_est`), so total = unit x units.
+- `Cradle_to_Gate_Method` and `Cradle_to_Gate_Source` say which method and which factors were used.
+The other method is kept as a comparison in `weight_kgco2e` / `spend_kgco2e`; do not add it on top.
 
 ## Production emissions (manufacturing category, material recipes)
 Every item has a `mfg_category` in `vocabulary.csv` (with a one-line `mfg_note`) and an OpenCEDA sector.

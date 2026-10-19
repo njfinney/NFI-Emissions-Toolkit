@@ -148,3 +148,18 @@ def test_integrity_checks_pass():
         if sev == "integrity":
             n = int(pd.Series(fn(), index=o.index).fillna(False).astype(bool).sum())
             assert n == 0, f"{cid}: {title} ({n} rows)"
+
+
+@pytest.mark.skipif(not os.path.exists(path("nfi_classified.csv")), reason="no pipeline output yet")
+def test_cradle_to_gate_columns_reconcile():
+    t, u = "Total_Cradle_to_Gate_Emissions_kgCO2e", "Unit_Cradle_to_Gate_Emissions_kgCO2e"
+    o = pd.read_csv(path("nfi_classified.csv"))
+    lk = pd.read_csv(path("nfi_lookup.csv"))
+    it = pd.read_csv(path("nfi_item_summary.csv"))
+    # one number to report: the three outputs agree
+    assert o[t].sum() == pytest.approx(lk[t].sum(), rel=1e-6) == pytest.approx(it[t].sum(), rel=1e-6)
+    # blank (not zero) only for unallocated rows
+    assert (o[t].isna() == (o["Cradle_to_Gate_Method"] == "Unallocated")).all()
+    assert (o[t].dropna() >= 0).all()
+    ok = o[u].notna()
+    assert ((o.loc[ok, u] * o.loc[ok, "units_est"] - o.loc[ok, t]).abs() < 1).all()

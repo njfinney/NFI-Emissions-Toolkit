@@ -63,6 +63,12 @@ def build_checks(o, eur_per_kg, fx):
          "Weight-based needs category A or B, a production recipe and a weight; the total must equal the chosen method.",
          lambda: (wb & (~tier.isin(["A", "B"]) | o.composite_ef_kgco2e_per_kg.isna() | ~(o.total_kg_est > 0)))
          | (o.production_kgco2e.notna() & ((o.production_kgco2e - chosen).abs() > 0.5))),
+        ("CRADLE_TO_GATE_COLS", "integrity", "Cradle-to-gate columns do not match the chosen method",
+         "Total must equal the weight- or spend-based figure for the row's method (blank only when unallocated); unit x units must equal the total.",
+         lambda: (o.Total_Cradle_to_Gate_Emissions_kgCO2e.isna() != (o.production_basis == "Unallocated"))
+         | (o.Total_Cradle_to_Gate_Emissions_kgCO2e.notna() & ((o.Total_Cradle_to_Gate_Emissions_kgCO2e - chosen).abs() > 0.5))
+         | (o.Unit_Cradle_to_Gate_Emissions_kgCO2e.notna() & ((o.Unit_Cradle_to_Gate_Emissions_kgCO2e * o.units_est
+                                                              - o.Total_Cradle_to_Gate_Emissions_kgCO2e).abs() > 1))),
         ("WEIGHT_SPEND_GAP", "review", "Weight-based and spend-based differ more than 5x",
          "Usually a wrong recipe, a wrong weight or a wrong spend sector.",
          lambda: wb & ((o.weight_vs_spend > 5) | (o.weight_vs_spend < 0.2))),
@@ -101,6 +107,35 @@ def build_checks(o, eur_per_kg, fx):
         ("TRADE_HUB", "info", "Spend-based goods bought from a re-export hub",
          "The supplier country may not be where the goods were made.", lambda: flag(o, "SUPPLIER_IN_TRADE_HUB")),
     ]
+
+
+def build_tree(o, recipes_path="recipes.csv", materials_path="material_factors.csv"):
+    """Leaves for the emissions breakdown: one per (item, material component) for weight-based
+    rows, one per item for spend-based rows. kg CO2e of a component = item kg x share x factor."""
+    import os
+    if not (os.path.exists(recipes_path) and os.path.exists(materials_path)):
+        return []
+    mat = pd.read_csv(materials_path).set_index("material_key")
+    rec = pd.read_csv(recipes_path)
+    rec = rec[rec["use"] == "production"]
+    wb = o["production_basis"].fillna("").str.startswith("Weight")
+    leaves = []
+    for iid, g in o[wb].groupby("item_id"):
+        kg = float(g.total_kg_est.sum())
+        for _, x in rec[rec.item_id == iid].iterrows():
+            m = mat.loc[x.material_key]
+            leaves.append(dict(tier=g.mfg_category.iat[0], item=g.item_en.iat[0], item_id=iid, comp=m.label,
+                               basis="weight", co2=round(kg * x.mass_share * m.kgco2e_per_kg, 1),
+                               kg=round(kg * x.mass_share, 1), share=x.mass_share, ef=m.kgco2e_per_kg,
+                               src=f"{m.source}: {m.source_detail}", proxy=bool(m.is_proxy), lines=len(g),
+                               value=float(g.Goods_Receipt_Value_USD.sum())))
+    sp = o[~wb & o.production_kgco2e.notna() & (o.production_kgco2e > 0)]
+    for (iid, sector), g in sp.groupby(["item_id", "ceda_target"]):
+        leaves.append(dict(tier=g.mfg_category.iat[0], item=g.item_en.iat[0], item_id=iid,
+                           comp=f"Spend-based: {sector}", basis="spend", co2=round(float(g.production_kgco2e.sum()), 1),
+                           kg=None, share=None, ef=None, src="OpenCEDA 2025 by supplier country", proxy=False,
+                           lines=len(g), value=float(g.Goods_Receipt_Value_USD.sum())))
+    return leaves
 
 
 def clean(v):
@@ -155,7 +190,8 @@ def main():
     rows = [[clean(r[c]) for c in cols.values()] + [row_checks[i]] for i, r in o.iterrows()]
     meta = dict(generated=dt.datetime.now().strftime("%d %b %Y %H:%M"), comext_period=args.comext_period,
                 usd_to_eur=args.usd_to_eur, rows=len(o), source=f"{args.prefix}_classified.csv")
-    data = json.dumps(dict(keys=keys + ["checks"], rows=rows, checks=checks, meta=meta),
+    tree = build_tree(o)
+    data = json.dumps(dict(keys=keys + ["checks"], rows=rows, checks=checks, meta=meta, tree=tree),
                       ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
     html = TEMPLATE.replace("/*__DATA__*/null", data)
     out = args.out or f"{args.prefix}_review.html"
@@ -278,6 +314,24 @@ tr.sel { background: var(--accent-wash) }
 .detail h3 { font-size: 16px; margin: 0 0 10px; grid-column: 1 / -1 }
 .mono { font-family: var(--mono); font-size: 12px }
 .empty { color: var(--muted); padding: 16px }
+.em-head { display: flex; flex-wrap: wrap; gap: 12px 24px; justify-content: space-between; align-items: start }
+.em-head > div { min-width: 0; max-width: 680px }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; flex-shrink: 0 }
+.seg button { font: 600 13px var(--font); color: var(--ink-2); background: var(--raise); border: 0; padding: 7px 12px; cursor: pointer }
+.seg button + button { border-left: 1px solid var(--line) }
+.seg button[aria-pressed="true"] { background: var(--accent-wash); color: var(--accent) }
+.crumbs { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin: 4px 0 10px; font-size: 13px }
+.crumbs button { font: 600 13px var(--font); color: var(--accent); background: none; border: 0; padding: 2px 4px; cursor: pointer; border-radius: 4px }
+.crumbs button:hover { background: var(--accent-wash) }
+.crumbs span.sep { color: var(--muted) }
+.crumbs span.cur { font-weight: 700; color: var(--ink); padding: 2px 4px }
+#em-map svg { display: block; width: 100%; height: auto }
+#em-map .tile { cursor: pointer }
+#em-map .tile.leaf { cursor: default }
+#em-map .tile:focus-visible rect.bg { stroke: var(--accent); stroke-width: 2 }
+#em-map text.tl { fill: var(--ink); font: 600 12px var(--font) }
+#em-map text.tv { fill: var(--ink-2); font: 11.5px var(--font); font-variant-numeric: tabular-nums }
+.proxy { font-size: 11px; padding: 0 6px; border-radius: 3px; background: var(--warn-wash); color: var(--warn); white-space: nowrap }
 @media (prefers-reduced-motion: no-preference) { tbody tr, .check { transition: background .12s, border-color .12s } }
 </style>
 
@@ -289,6 +343,7 @@ tr.sel { background: var(--accent-wash) }
     <a href="#checks" data-tab="checks">Checks</a>
     <a href="#rows" data-tab="rows">Rows</a>
     <a href="#items" data-tab="items">Items</a>
+    <a href="#emissions" data-tab="emissions">Emissions</a>
   </nav>
 </div></header>
 
@@ -325,6 +380,23 @@ tr.sel { background: var(--accent-wash) }
   <div class="panel" id="detail" hidden></div>
   <div class="scroll"><table id="t-rows"><thead></thead><tbody></tbody></table></div>
   <div class="pager"><span id="p-info"></span><span><button class="btn" id="p-prev" type="button">Previous</button> <button class="btn" id="p-next" type="button">Next</button></span></div>
+</section>
+
+<section id="tab-emissions" hidden>
+  <div class="panel">
+    <div class="em-head">
+      <div><h2>Where production emissions come from</h2>
+      <p class="sub">Tile area = t CO2e. Select a tile to open it; use the trail to go back. Weight-based items split into their recipe components (item kg x mass share x material factor); spend-based items show their OpenCEDA sector.</p></div>
+      <div class="seg" role="group" aria-label="Group by">
+        <button type="button" id="em-by-item" aria-pressed="true">Category, item, material</button>
+        <button type="button" id="em-by-mat" aria-pressed="false">Material, item</button>
+      </div>
+    </div>
+    <nav class="crumbs" id="em-crumbs" aria-label="Breakdown level"></nav>
+    <div id="em-map"></div>
+    <div class="legend" id="em-legend"></div>
+  </div>
+  <div class="scroll" style="margin-top:16px"><table id="t-em"><thead></thead><tbody></tbody></table></div>
 </section>
 
 <section id="tab-items" hidden>
@@ -640,13 +712,99 @@ function renderItems() {
     tr.addEventListener("click", f); tr.addEventListener("keydown", e => { if (e.key === "Enter") f(); }); });
 }
 
+// ---------------------------------------------------------------- emissions breakdown (click-through treemap)
+const TIER_COLOR = { "A. Simple": "--s1", "B. Multi-material": "--s2", "C. Complex": "--s3", "D. Services and works": "--s4", "X. Unallocated / out of scope": "--axis" };
+let EM = { by: "item", path: [] };
+function emTree() {
+  const root = { name: "All production emissions", children: [] };
+  const get = (node, name, extra) => { let c = node.children.find(x => x.name === name); if (!c) { c = Object.assign({ name, children: [] }, extra); node.children.push(c); } return c; };
+  D.tree.forEach(l => {
+    const leaf = { name: l.comp, value: l.co2, leaf: l };
+    if (EM.by === "item") get(get(root, l.tier, { tier: l.tier }), l.item, { tier: l.tier, item_id: l.item_id }).children.push(leaf);
+    else get(get(root, l.basis === "spend" ? "Spend-based (no material split)" : l.comp, { mat: true, spend: l.basis === "spend" }), l.item, { tier: l.tier, item_id: l.item_id })
+      .children.push(Object.assign({}, leaf, { name: l.basis === "spend" ? l.comp.replace("Spend-based: ", "") : l.item }));
+  });
+  const sum = n => n.children ? (n.value = n.children.reduce((a, c) => a + sum(c), 0)) : n.value;
+  sum(root);
+  const sort = n => { if (n.children) { n.children.sort((a, b) => b.value - a.value); n.children.forEach(sort); } };
+  sort(root);
+  return root;
+}
+function emColor(n, parent) {
+  const t = n.tier || n.leaf?.tier || parent?.tier;
+  if (EM.by === "mat" && EM.path.length === 0) return n.spend ? "--s2" : "--s1";
+  return TIER_COLOR[t] || "--s1";
+}
+function squarify(items, x, y, w, h) {
+  // squarified treemap layout (Bruls et al.), items sorted descending by value
+  const out = [], total = items.reduce((a, c) => a + c.value, 0) || 1, area = w * h;
+  let rest = items.map(c => ({ c, a: c.value / total * area })), rx = x, ry = y, rw = w, rh = h;
+  const worst = (row, side) => { const s = row.reduce((a, r) => a + r.a, 0), mx = Math.max(...row.map(r => r.a)), mn = Math.min(...row.map(r => r.a));
+    return Math.max(side * side * mx / (s * s), (s * s) / (side * side * mn)); };
+  while (rest.length) {
+    const side = Math.min(rw, rh); let row = [rest[0]], i = 1;
+    while (i < rest.length && worst(row.concat(rest[i]), side) <= worst(row, side)) { row.push(rest[i]); i++; }
+    rest = rest.slice(i);
+    const s = row.reduce((a, r) => a + r.a, 0);
+    if (rw >= rh) { const cw = s / rh; let cy = ry; row.forEach(r => { const ch = r.a / cw; out.push({ c: r.c, x: rx, y: cy, w: cw, h: ch }); cy += ch; }); rx += cw; rw -= cw; }
+    else { const ch = s / rw; let cx = rx; row.forEach(r => { const cw = r.a / ch; out.push({ c: r.c, x: cx, y: ry, w: cw, h: ch }); cx += cw; }); ry += ch; rh -= ch; }
+  }
+  return out;
+}
+function renderEmissions() {
+  const root = emTree();
+  let node = root; const trail = [root];
+  for (const name of EM.path) { const n = node.children?.find(c => c.name === name); if (!n) { EM.path = EM.path.slice(0, trail.length - 1); break; } node = n; trail.push(n); }
+  $("#em-crumbs").innerHTML = trail.map((n, i) => i === trail.length - 1 ? `<span class="cur">${esc(n.name)}</span>`
+    : `<button type="button" data-depth="${i}">${esc(n.name)}</button><span class="sep">›</span>`).join("");
+  $("#em-crumbs").querySelectorAll("button").forEach(b => b.addEventListener("click", () => { EM.path = EM.path.slice(0, +b.dataset.depth); renderEmissions(); }));
+  const kids = (node.children || []).filter(c => c.value > 0);
+  const W = Math.max(280, Math.round($("#em-map").clientWidth || 1000)), H = Math.round(Math.min(460, Math.max(300, W * 0.55))), gap = 2;
+  const tiles = squarify(kids, 0, 0, W, H);
+  const fmtT = v => v >= 1e4 ? fmtN(v / 1000, 0) + " t" : v >= 1000 ? fmtN(v / 1000, 1) + " t" : fmtN(v, 0) + " kg";
+  $("#em-map").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Production emissions breakdown: ${esc(node.name)}">
+    ${tiles.map((t, i) => { const c = t.c, col = emColor(c, node), x = t.x + gap / 2, y = t.y + gap / 2, w = Math.max(t.w - gap, 0), h = Math.max(t.h - gap, 0);
+      const big = w > 90 && h > 40, mid = w > 56 && h > 22, name = c.name.length > Math.floor(w / 7.2) ? c.name.slice(0, Math.max(Math.floor(w / 7.2) - 1, 3)) + "…" : c.name;
+      return `<g class="tile${c.children ? "" : " leaf"}" data-i="${i}" tabindex="${c.children ? 0 : -1}" role="${c.children ? "button" : "img"}" aria-label="${esc(c.name)}: ${fmtT(c.value)}">
+        <rect class="bg" x="${x}" y="${y}" width="${w}" height="${h}" rx="4" fill="color-mix(in srgb, var(${col}) ${c.leaf?.basis === "spend" ? 12 : 24}%, var(--surface))"></rect>
+        <rect x="${x}" y="${y}" width="${w}" height="${Math.min(4, h)}" rx="2" fill="var(${col})"></rect>
+        ${mid ? `<text class="tl" x="${x + 8}" y="${y + 20}">${esc(name)}</text>` : ""}
+        ${big ? `<text class="tv" x="${x + 8}" y="${y + 37}">${fmtT(c.value)} · ${pct(c.value / root.value)}</text>` : ""}</g>`; }).join("")}</svg>`;
+  $("#em-map").querySelectorAll(".tile").forEach(g => { const c = tiles[+g.dataset.i].c;
+    const tipHtml = () => `<div class="t">${esc(c.name)}</div><div class="r">${fmtT(c.value)} CO2e · ${pct(c.value / node.value)} of ${esc(node.name)} · ${pct(c.value / root.value)} of all</div>`
+      + (c.leaf && c.leaf.basis === "weight" ? `<div class="r">${fmtN(c.leaf.kg / 1000, 1)} t material × ${fmtN(c.leaf.ef, 3)} kg CO2e/kg${c.leaf.proxy ? " · proxy factor" : ""}</div>` : "")
+      + (c.children ? `<div class="r">Select to open (${c.children.length})</div>` : "");
+    g.addEventListener("mousemove", ev => showTip(ev, tipHtml())); g.addEventListener("mouseleave", hideTip);
+    const open = () => { if (!c.children) return; hideTip(); EM.path = EM.path.concat(c.name); renderEmissions(); };
+    g.addEventListener("click", open); g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } }); });
+  const usedTiers = [...new Set(D.tree.map(l => l.tier))];
+  $("#em-legend").innerHTML = EM.by === "mat" && EM.path.length === 0
+    ? `<span><i style="background:var(--s1)"></i>Material (weight-based)</span><span><i style="background:var(--s2)"></i>Spend-based</span>`
+    : TIERS.filter(t => usedTiers.includes(t)).map(t => `<span><i style="background:var(${TIER_COLOR[t]})"></i>${esc(t)}</span>`).join("") + `<span>Paler tile: spend-based</span>`;
+  // grid of the current level
+  const isLeafLevel = kids.length && !kids[0].children;
+  $("#t-em thead").innerHTML = `<tr><th>${esc(isLeafLevel ? (EM.by === "item" ? "Component" : "Item") : "Name")}</th><th class="num">t CO2e</th><th class="num">Share of ${esc(node.name.length > 24 ? "level" : node.name)}</th><th class="num">Share of all</th>
+    ${isLeafLevel ? `<th class="num">Mass share</th><th class="num">Material t</th><th class="num">kg CO2e / kg</th><th>Factor source</th>` : `<th class="num">Parts</th>`}</tr>`;
+  $("#t-em tbody").innerHTML = kids.map((c, i) => `<tr data-i="${i}" ${c.children ? 'tabindex="0"' : ""}><td>${esc(c.name)}${c.leaf?.proxy ? ' <span class="proxy">proxy</span>' : ""}</td>
+    <td class="num">${fmtN(c.value / 1000, 1)}</td><td class="num">${pct(c.value / node.value)}</td><td class="num">${pct(c.value / root.value)}</td>
+    ${isLeafLevel ? (c.leaf.basis === "weight" ? `<td class="num">${pct(c.leaf.share)}</td><td class="num">${fmtN(c.leaf.kg / 1000, 1)}</td><td class="num">${fmtN(c.leaf.ef, 3)}</td><td>${esc(c.leaf.src)}</td>`
+      : `<td class="num">–</td><td class="num">–</td><td class="num">–</td><td>${esc(c.leaf.src)}</td>`) : `<td class="num">${c.children.length}</td>`}</tr>`).join("");
+  $("#t-em tbody").querySelectorAll("tr[tabindex]").forEach(tr => { const c = kids[+tr.dataset.i];
+    const open = () => { EM.path = EM.path.concat(c.name); renderEmissions(); };
+    tr.addEventListener("click", open); tr.addEventListener("keydown", e => { if (e.key === "Enter") open(); }); });
+}
+let emT; addEventListener("resize", () => { clearTimeout(emT); emT = setTimeout(() => { if (!$("#tab-emissions").hidden) renderEmissions(); }, 150); });
+$("#em-by-item").addEventListener("click", () => { EM = { by: "item", path: [] }; $("#em-by-item").setAttribute("aria-pressed", "true"); $("#em-by-mat").setAttribute("aria-pressed", "false"); renderEmissions(); });
+$("#em-by-mat").addEventListener("click", () => { EM = { by: "mat", path: [] }; $("#em-by-mat").setAttribute("aria-pressed", "true"); $("#em-by-item").setAttribute("aria-pressed", "false"); renderEmissions(); });
+
 // ---------------------------------------------------------------- tabs + controls
 function go(tab) { document.querySelectorAll("main section").forEach(s => s.hidden = s.id !== "tab-" + tab);
+  if (tab === "emissions") renderEmissions();
   document.querySelectorAll("nav a").forEach(a => a.dataset.tab === tab ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
   if (location.hash !== "#" + tab) history.replaceState(null, "", "#" + tab);
   try { localStorage.setItem("nfi-tab", tab); } catch (e) {} }
 document.querySelectorAll("nav a").forEach(a => a.addEventListener("click", e => { e.preventDefault(); go(a.dataset.tab); }));
-addEventListener("hashchange", () => { const t = location.hash.slice(1); if (["overview", "checks", "rows", "items"].includes(t)) go(t); });
+addEventListener("hashchange", () => { const t = location.hash.slice(1); if (["overview", "checks", "rows", "items", "emissions"].includes(t)) go(t); });
 $("#f-ap").innerHTML = `<option value="">All</option>` + APPROACHES.map(a => `<option value="${a}">${shortAp(a)}</option>`).join("");
 $("#f-ck").innerHTML = `<option value="">Any</option>` + D.checks.filter(c => c.rows).map(c => `<option value="${c.id}">${esc(c.title)} (${c.rows})</option>`).join("");
 const itemIds = [...new Set(R.map(r => r.item_id).filter(Boolean))].sort();
@@ -663,10 +821,10 @@ $("#p-prev").addEventListener("click", () => { F.page--; renderRows(); });
 $("#p-next").addEventListener("click", () => { F.page++; renderRows(); });
 $("#i-q").addEventListener("input", renderItems);
 
-approachChart(); bandChart(); scatter(); tierChart(); wvsChart(); kgChart(); renderChecks(); renderRows(); renderItems();
+approachChart(); bandChart(); scatter(); tierChart(); wvsChart(); kgChart(); renderChecks(); renderRows(); renderItems(); renderEmissions();
 let start = (location.hash || "").slice(1);
-if (!["overview", "checks", "rows", "items"].includes(start)) { try { start = localStorage.getItem("nfi-tab") || "overview"; } catch (e) { start = "overview"; } }
-go(["overview", "checks", "rows", "items"].includes(start) ? start : "overview");
+if (!["overview", "checks", "rows", "items", "emissions"].includes(start)) { try { start = localStorage.getItem("nfi-tab") || "overview"; } catch (e) { start = "overview"; } }
+go(["overview", "checks", "rows", "items", "emissions"].includes(start) ? start : "overview");
 </script>
 """
 

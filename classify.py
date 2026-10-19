@@ -251,6 +251,10 @@ NO_PRICE_CHECK_ITEMS = {"KIT_OTHER", "KIT_RRT", "TENT", "TENT_CLASSROOM", "TENT_
 
 # ---------------------------------------------------------------- material recipes
 
+TOTAL_COL = "Total_Cradle_to_Gate_Emissions_kgCO2e"
+UNIT_COL = "Unit_Cradle_to_Gate_Emissions_kgCO2e"
+
+
 def load_recipes(recipes_path, materials_path):
     """item_id -> {ef: composite kg CO2e per kg, summary, use, proxy}. A composite is
     sum(mass share x material factor); shares must add up to 1 for each item."""
@@ -608,6 +612,24 @@ def main():
     w_based = out["production_basis"].str.startswith("Weight")
     out["production_kgco2e"] = out["weight_kgco2e"].where(w_based, out["spend_kgco2e"])
     out["weight_vs_spend"] = (out["weight_kgco2e"] / out["spend_kgco2e"]).where(out["spend_kgco2e"] > 0).round(2)
+
+    # ---- cradle-to-gate emissions: the columns to aggregate for the annual report.
+    # Best available method per row: material recipe x kg where the item has a recipe, a weight and an
+    # open factor (categories A and B); otherwise OpenCEDA spend-based. Unallocated rows stay blank
+    # (no value, adjustment or unclear line), so a sum never includes them and they are not zeros.
+    out[TOTAL_COL] = out["production_kgco2e"]
+    out[UNIT_COL] = (out[TOTAL_COL] / out["units_est"]).where(out["units_est"] > 0).round(6)
+    out["Cradle_to_Gate_Method"] = out["production_basis"]
+    src = []
+    for b, rcp, code, tgt, geo, note in zip(out["production_basis"], out["recipe"], out["ceda_code"], out["ceda_target"],
+                                            out["ceda_ef_geography"], out["production_basis_note"]):
+        if b.startswith("Weight"):
+            src.append(f"kg x composite factor, BEIS 2025 / ADEME Base Carbone: {rcp}")
+        elif b.startswith("Spend"):
+            src.append(f"Value x OpenCEDA 2025 factor, {code} {tgt}, {geo}")
+        else:
+            src.append(note)
+    out["Cradle_to_Gate_Source"] = src
     HUBS = {"United Arab Emirates", "Belgium", "Netherlands (Kingdom of the)", "Singapore", "Malaysia", "Panama"}
     hub = (out.emissions_approach == "Spend-based (OpenCEDA)") & out.scope.isin(["GOODS", "KIT"]) & \
         out.Supplier_Country_Name.isin(HUBS)
@@ -651,7 +673,7 @@ def main():
     out["confidence_basis"] = why
 
     cols = ["Material_Group_Description", "Detailed_Description", "item_std", "item_en", "item_id",
-            "group", "scope", "emissions_approach", "cn", "ceda_code", "ceda_target",
+            "group", "scope", TOTAL_COL, UNIT_COL, "Cradle_to_Gate_Method", "Cradle_to_Gate_Source", "emissions_approach", "cn", "ceda_code", "ceda_target",
             "ceda_ef_kgco2e_per_usd", "ceda_ef_geography", "spend_kgco2e", "mfg_category", "mfg_note",
             "recipe", "recipe_use", "recipe_has_proxy", "composite_ef_kgco2e_per_kg", "weight_kgco2e",
             "production_basis", "production_basis_note", "production_kgco2e", "weight_vs_spend", "weight_method",
@@ -677,10 +699,14 @@ def main():
         production_basis=("production_basis", lambda s: s.mode().iat[0]),
         ceda_ef_geography=("ceda_ef_geography", lambda s: s.mode().iat[0] if s.notna().any() else ""),
         weight_kgco2e=("weight_kgco2e", "sum"), spend_kgco2e=("spend_kgco2e", "sum"),
-        production_kgco2e=("production_kgco2e", "sum"),
+        production_kgco2e=("production_kgco2e", "sum"), units_est=("units_est", "sum"),
+        **{TOTAL_COL: (TOTAL_COL, lambda s: s.sum(min_count=1)), "Cradle_to_Gate_Method": ("Cradle_to_Gate_Method", lambda s: s.mode().iat[0])},
     ).reset_index().merge(
         lk.drop(columns=["data_score", "ceda_fit", "kg_per_unit", "kg_basis", "comext_route"]),
         on="Detailed_Description")
+    lk2[UNIT_COL] = (lk2[TOTAL_COL] / lk2["units_est"]).where(lk2["units_est"] > 0).round(6)
+    lead = ["Detailed_Description", TOTAL_COL, UNIT_COL, "Cradle_to_Gate_Method"]
+    lk2 = lk2[lead + [c for c in lk2.columns if c not in lead]]
     lk2.sort_values("value_usd", ascending=False).to_csv(f"{args.prefix}_lookup.csv", index=False)
 
     summ = out.groupby(["scope", "group", "item_id", "item_en", "emissions_approach", "cn", "ceda_code",
@@ -691,10 +717,14 @@ def main():
         kg_per_unit_median=("kg_per_unit", "median"),
         spend_kgco2e=("spend_kgco2e", "sum"), weight_kgco2e=("weight_kgco2e", "sum"),
         production_kgco2e=("production_kgco2e", "sum"),
+        **{TOTAL_COL: (TOTAL_COL, lambda s: s.sum(min_count=1))},
         mfg_category=("mfg_category", "first"), recipe=("recipe", "first"),
         composite_ef_kgco2e_per_kg=("composite_ef_kgco2e_per_kg", "first"),
         production_basis=("production_basis", lambda s: s.mode().iat[0]),
         confidence_score_median=("confidence_score", "median")).reset_index().sort_values("value_usd", ascending=False)
+    summ[UNIT_COL] = (summ[TOTAL_COL] / summ["units_est"]).where(summ["units_est"] > 0).round(6)
+    lead = ["scope", "group", "item_id", "item_en", TOTAL_COL, UNIT_COL]
+    summ = summ[lead + [c for c in summ.columns if c not in lead]]
     summ.to_csv(f"{args.prefix}_item_summary.csv", index=False)
 
     tot = out["Goods_Receipt_Value_USD"].sum()
@@ -710,6 +740,8 @@ def main():
         print(f"{ap:32}", pct(out.emissions_approach == ap))
     w = out.Goods_Receipt_Value_USD
     print("value-weighted confidence", round((out.confidence_score * w).sum() / w.sum(), 1))
+    print(f"Total cradle-to-gate  {out[TOTAL_COL].sum() / 1000:,.0f} t CO2e over {out[TOTAL_COL].notna().sum()} rows "
+          f"({out[TOTAL_COL].isna().sum()} unallocated rows left blank)")
     for b in ("Weight-based (material recipe)", "Spend-based (OpenCEDA)", "Unallocated"):
         m = out.production_basis == b
         print(f"{b:32}", pct(m), f"{out.loc[m, 'production_kgco2e'].sum() / 1000:9,.0f} t CO2e")

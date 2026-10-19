@@ -1,0 +1,33 @@
+material_key,label,source,source_ref,proxy_note
+steel,Steel (carbon),BEIS 2025,Material use|Metal|Metal: steel cans,Proxy: BEIS has no generic steel product factor; steel cans (primary production incl. forming) used for steel articles
+stainless_steel,Stainless steel,ADEME Base Carbone,20643,Stainless (inox) wire 18/8 new; used for stainless household articles
+aluminium,Aluminium,BEIS 2025,Material use|Metal|Metal: aluminium cans and foil (excl. forming),Excludes forming
+metals_mixed,Mixed metals,BEIS 2025,Material use|Construction|Metals,Construction metals average
+copper,Copper / brass,ADEME Base Carbone,26733,Proxy: copper new (FEDEREC / ADEME) used for brass; low against other published copper factors
+hdpe,HDPE,BEIS 2025,Material use|Plastic|Plastics: HDPE (incl. forming),
+ldpe,LDPE / LLDPE,BEIS 2025,Material use|Plastic|Plastics: LDPE and LLDPE (incl. forming),
+pp,Polypropylene,BEIS 2025,Material use|Plastic|Plastics: PP (incl. forming),
+ps,Polystyrene,BEIS 2025,Material use|Plastic|Plastics: PS (incl. forming),
+pvc,PVC,BEIS 2025,Material use|Plastic|Plastics: PVC (incl. forming),
+pet,PET,BEIS 2025,Material use|Plastic|Plastics: PET (incl. forming),
+plastic_avg,Plastics (average),BEIS 2025,Material use|Plastic|Plastics: average plastics,
+polyester_textile,Polyester textile,BEIS 2025,Material use|Plastic|Plastics: PET (incl. forming),Proxy: polymer only; spinning / weaving / finishing not included (understates)
+nylon,Nylon (polyamide),ADEME Base Carbone,20844,
+pu_foam,Polyurethane foam,BEIS 2025,Material use|Plastic|Plastics: average plastics,Proxy: no PU factor in BEIS or Base Carbone; average plastics used (understates)
+rubber,Rubber,BEIS 2025,Material use|Construction|Tyres,Proxy: tyres used for rubber articles
+cotton_textile,Cotton textile / garments,BEIS 2025,Material use|Other|Clothing,Proxy: clothing factor covers fibre to finished garment (overstates for plain fabric and canvas)
+paper,Paper,BEIS 2025,Material use|Paper|Paper and board: paper,
+board,Paperboard / cardboard,BEIS 2025,Material use|Paper|Paper and board: board,
+glass,Glass,BEIS 2025,Material use|Other|Glass,
+wood,Wood,BEIS 2025,Material use|Construction|Wood,
+cement,Portland cement,ADEME Base Carbone,20723,
+aggregates,Aggregates (sand / gravel),BEIS 2025,Material use|Construction|Aggregates,
+concrete,Concrete,BEIS 2025,Material use|Construction|Concrete,
+fired_clay,Fired clay / refractory,BEIS 2025,Material use|Construction|Bricks,Proxy: bricks used for clay stove liners and refractory
+gypsum,Gypsum plaster / plasterboard,BEIS 2025,Material use|Construction|Plasterboard,Proxy for gypsum plaster
+insulation,Insulation,BEIS 2025,Material use|Construction|Insulation,
+electrical_small,Electrical items - small,BEIS 2025,Material use|Electrical items|Electrical items - small,
+electrical_large,Electrical items - large,BEIS 2025,Material use|Electrical items|Electrical items - large,
+electrical_it,Electrical items - IT,BEIS 2025,Material use|Electrical items|Electrical items - IT,
+fridges,Fridges and freezers,BEIS 2025,Material use|Electrical items|Electrical items - fridges and freezers,
+battery_li,Batteries - Li ion,BEIS 2025,Material use|Electrical items|Batteries - Li ion,

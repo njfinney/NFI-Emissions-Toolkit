@@ -144,6 +144,36 @@ Bands: High >= 70 · Medium 40-69 · Low 1-39 · None = 0 (not yet quantified, o
 The score measures how sure we are about this row's mapping and quantities; it does not rank
 the calculation methods against each other.
 
+## Production emissions (manufacturing category, material recipes)
+Every item has a `mfg_category` in `vocabulary.csv` (with a one-line `mfg_note`) and an OpenCEDA sector.
+
+| Category | Test | Production emissions |
+|---|---|---|
+| A. Simple | One dominant material, no electronics | Weight-based: kg x material factor |
+| B. Multi-material | A few materials, no electronics | Weight-based: kg x composite of a rough bill of materials |
+| C. Complex | Electronics, batteries, engines, kits | Spend-based (OpenCEDA); BEIS electrical-item factor kept as a comparison where one fits |
+| D. Services and works | Not a physical good | Spend-based (OpenCEDA) |
+| X. Unallocated / out of scope | Adjustments, unclear, food / medicine / plants | Spend-based, or none when Unallocated |
+
+A and B fall back to spend-based when the row has no weight or no open material factor exists
+(ceramic tiles, paint, chemicals, sinks of unknown material); `production_basis_note` says why.
+The other method is always kept as a comparison (`weight_vs_spend`), never added.
+
+Files (a simplified Bonsai-style split: recipes are separate from the item list):
+- `recipes.csv` - long format: `item_id, role (primary/secondary/...), material_key, mass_share, use, share_basis`.
+  Shares add up to 1 per item. Shares are judgements from typical construction or catalogue specs and
+  are labelled "Unqualified Estimate". `use` = production (A/B) or comparison (C).
+- `material_spec.csv` - which published row each material comes from, and any proxy note.
+- `material_factors.csv` - built by `build_material_factors.py` (`make factors`): kg CO2e per kg,
+  cradle-to-gate, primary material (no recycled content assumed). Sources: UK Government GHG
+  conversion factors 2025, sheet "Material use", column "Primary material production" (covers
+  extraction, processing, manufacturing and transport to point of sale); ADEME Base Carbone
+  (Licence Ouverte) for cement, stainless steel, nylon and copper. Proxies are flagged in `is_proxy`.
+- Composite factor = sum(mass share x material factor); `weight_kgco2e = total_kg_est x composite`.
+
+No separate manufacturing-process factor is added: BEIS primary factors already include generic
+manufacturing (plastics "incl. forming"), and neither source publishes product assembly factors.
+
 ## Open CEDA factors
 - Every item has a `ceda_code` / `ceda_target`. For Spend-based rows it is the factor used; for goods it is
   only a fallback / cross-check.

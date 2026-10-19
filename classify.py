@@ -249,6 +249,29 @@ NO_PRICE_CHECK_ITEMS = {"KIT_OTHER", "KIT_RRT", "TENT", "TENT_CLASSROOM", "TENT_
                         "BAKERY_EQUIP", "MILL", "WATER_FILTER", "WATER_TANK", "PUMP", "SCALE",
                         "CONTAINER_SHIPPING", "FLOORING_MODULAR", "INCINERATOR", "MET_INSTRUMENT"}
 
+# ---------------------------------------------------------------- material recipes
+
+def load_recipes(recipes_path, materials_path):
+    """item_id -> {ef: composite kg CO2e per kg, summary, use, proxy}. A composite is
+    sum(mass share x material factor); shares must add up to 1 for each item."""
+    import os
+    if not (os.path.exists(recipes_path) and os.path.exists(materials_path)):
+        return {}
+    mat = pd.read_csv(materials_path).set_index("material_key")
+    rec = pd.read_csv(recipes_path)
+    unknown = sorted(set(rec.material_key) - set(mat.index))
+    if unknown:
+        raise SystemExit(f"{recipes_path}: materials missing from {materials_path}: {unknown}")
+    out = {}
+    for iid, g in rec.groupby("item_id", sort=False):
+        if abs(g.mass_share.sum() - 1) > 1e-6:
+            raise SystemExit(f"{recipes_path}: shares for {iid} add up to {g.mass_share.sum():g}, not 1")
+        f = g.material_key.map(mat.kgco2e_per_kg)
+        out[iid] = dict(ef=round(float((g.mass_share * f).sum()), 4),
+                        summary=" / ".join(f"{mat.at[m, 'label']} {s:.0%}" for m, s in zip(g.material_key, g.mass_share)),
+                        use=g["use"].iat[0], proxy=bool(mat.loc[g.material_key, "is_proxy"].any()))
+    return out
+
 # ---------------------------------------------------------------- main
 
 def main():
@@ -263,6 +286,8 @@ def main():
     ap.add_argument("--prefix", default="nfi")
     ap.add_argument("--ceda_dir", default=".", help="folder with ceda_ef_long.csv etc. (build_ceda_long.py)")
     ap.add_argument("--countries", default="country_iso3.csv")
+    ap.add_argument("--recipes", default="recipes.csv", help="item -> material mass shares (long format)")
+    ap.add_argument("--materials", default="material_factors.csv", help="build_material_factors.py output")
     args = ap.parse_args()
 
     vocab = list(csv.DictReader(open(args.vocab, encoding="utf-8")))
@@ -331,7 +356,8 @@ def main():
                        weight_method=hit["weight_method"], match=how, matched_text=matched,
                        kg_per_unit=kg, kg_basis=basis, data_score=conf,
                        ceda_code=hit.get("ceda_code", ""), ceda_target=hit.get("ceda_target", ""),
-                       ceda_fit=float(hit["ceda_fit"]) if hit.get("ceda_fit") else None)
+                       ceda_fit=float(hit["ceda_fit"]) if hit.get("ceda_fit") else None,
+                       mfg_category=hit.get("mfg_category", ""), mfg_note=hit.get("mfg_note", ""))
         rec["attributes"] = "; ".join(f"{k}={v if not isinstance(v, list) else 'x'.join(f'{d:g}' for d in v)}"
                                       for k, v in a.items() if k != "dims_txt")
         rec["qty_hint"] = a.get("qty_hint")
@@ -559,6 +585,29 @@ def main():
         out["ceda_ef_geography"] = geos
     out["spend_kgco2e"] = (out["Goods_Receipt_Value_USD"] * pd.to_numeric(out["ceda_ef_kgco2e_per_usd"])).round(1)
     out.loc[out.emissions_approach == "Unallocated", "spend_kgco2e"] = None
+
+    # ---- production emissions: material recipe (BEIS / ADEME, weight-based) or OpenCEDA (spend-based)
+    rc = load_recipes(args.recipes, args.materials)
+    for c, k in (("recipe", "summary"), ("composite_ef_kgco2e_per_kg", "ef"), ("recipe_use", "use"),
+                 ("recipe_has_proxy", "proxy")):
+        out[c] = out["item_id"].map(lambda i: rc.get(i, {}).get(k))
+    out["weight_kgco2e"] = (out["total_kg_est"] * out["composite_ef_kgco2e_per_kg"]).round(1)
+    tier = out["mfg_category"].fillna("").str[:1]
+    has_w = out["weight_kgco2e"].notna() & (out["weight_kgco2e"] > 0) & (out["recipe_use"] == "production")
+    basis, note = [], []
+    for t, hw, ap, r, mn in zip(tier, has_w, out["emissions_approach"], out["recipe"], out["mfg_note"]):
+        if ap == "Unallocated":
+            basis.append("Unallocated"); note.append("no value, adjustment or unclear line")
+        elif t in ("A", "B") and hw:
+            basis.append("Weight-based (material recipe)"); note.append("kg x composite material factor")
+        else:
+            basis.append("Spend-based (OpenCEDA)")
+            note.append({"C": "complex item", "D": "service or works", "X": "outside NFI scope"}.get(t)
+                        or ("no open material factor: " + str(mn) if pd.isna(r) else "no weight estimate"))
+    out["production_basis"], out["production_basis_note"] = basis, note
+    w_based = out["production_basis"].str.startswith("Weight")
+    out["production_kgco2e"] = out["weight_kgco2e"].where(w_based, out["spend_kgco2e"])
+    out["weight_vs_spend"] = (out["weight_kgco2e"] / out["spend_kgco2e"]).where(out["spend_kgco2e"] > 0).round(2)
     HUBS = {"United Arab Emirates", "Belgium", "Netherlands (Kingdom of the)", "Singapore", "Malaysia", "Panama"}
     hub = (out.emissions_approach == "Spend-based (OpenCEDA)") & out.scope.isin(["GOODS", "KIT"]) & \
         out.Supplier_Country_Name.isin(HUBS)
@@ -603,7 +652,9 @@ def main():
 
     cols = ["Material_Group_Description", "Detailed_Description", "item_std", "item_en", "item_id",
             "group", "scope", "emissions_approach", "cn", "ceda_code", "ceda_target",
-            "ceda_ef_kgco2e_per_usd", "ceda_ef_geography", "spend_kgco2e", "weight_method",
+            "ceda_ef_kgco2e_per_usd", "ceda_ef_geography", "spend_kgco2e", "mfg_category", "mfg_note",
+            "recipe", "recipe_use", "recipe_has_proxy", "composite_ef_kgco2e_per_kg", "weight_kgco2e",
+            "production_basis", "production_basis_note", "production_kgco2e", "weight_vs_spend", "weight_method",
             "kg_per_unit", "kg_basis", "supp_unit", "comext_route", "comext_cn8", "comext_p25", "comext_p75",
             "comext_eur_per_kg", "comext_price_ratio", "confidence_score", "id_score", "quant_score", "qty_factor", "confidence_band", "confidence_basis",
             "Quantity", "Goods_Receipt_Value_USD", "unit_price_usd", "price_ratio_vs_item_median",
@@ -622,6 +673,11 @@ def main():
         comext_route=("comext_route", lambda s: s.mode().iat[0] if s.notna().any() else ""),
         comext_price_ratio=("comext_price_ratio", "median"),
         flags=("flags", lambda s: "|".join(sorted({f for x in s.fillna("") for f in x.split("|") if f}))),
+        recipe=("recipe", "first"), composite_ef_kgco2e_per_kg=("composite_ef_kgco2e_per_kg", "first"),
+        production_basis=("production_basis", lambda s: s.mode().iat[0]),
+        ceda_ef_geography=("ceda_ef_geography", lambda s: s.mode().iat[0] if s.notna().any() else ""),
+        weight_kgco2e=("weight_kgco2e", "sum"), spend_kgco2e=("spend_kgco2e", "sum"),
+        production_kgco2e=("production_kgco2e", "sum"),
     ).reset_index().merge(
         lk.drop(columns=["data_score", "ceda_fit", "kg_per_unit", "kg_basis", "comext_route"]),
         on="Detailed_Description")
@@ -633,7 +689,11 @@ def main():
         rows=("Quantity", "size"), value_usd=("Goods_Receipt_Value_USD", "sum"),
         units_est=("units_est", "sum"), total_kg_est=("total_kg_est", "sum"),
         kg_per_unit_median=("kg_per_unit", "median"),
-        spend_kgco2e=("spend_kgco2e", "sum"),
+        spend_kgco2e=("spend_kgco2e", "sum"), weight_kgco2e=("weight_kgco2e", "sum"),
+        production_kgco2e=("production_kgco2e", "sum"),
+        mfg_category=("mfg_category", "first"), recipe=("recipe", "first"),
+        composite_ef_kgco2e_per_kg=("composite_ef_kgco2e_per_kg", "first"),
+        production_basis=("production_basis", lambda s: s.mode().iat[0]),
         confidence_score_median=("confidence_score", "median")).reset_index().sort_values("value_usd", ascending=False)
     summ.to_csv(f"{args.prefix}_item_summary.csv", index=False)
 
@@ -650,6 +710,9 @@ def main():
         print(f"{ap:32}", pct(out.emissions_approach == ap))
     w = out.Goods_Receipt_Value_USD
     print("value-weighted confidence", round((out.confidence_score * w).sum() / w.sum(), 1))
+    for b in ("Weight-based (material recipe)", "Spend-based (OpenCEDA)", "Unallocated"):
+        m = out.production_basis == b
+        print(f"{b:32}", pct(m), f"{out.loc[m, 'production_kgco2e'].sum() / 1000:9,.0f} t CO2e")
 
 
 if __name__ == "__main__":

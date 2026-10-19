@@ -38,6 +38,9 @@ def build_checks(o, eur_per_kg, fx):
     proxy_total = o["Goods_Receipt_Value_USD"] * fx / o["cn"].map(eur_per_kg)
     usd_per_kg = o["unit_price_usd"] / o["kg_per_unit"]
     spread = o["comext_p75"] / o["comext_p25"]
+    tier = o["mfg_category"].fillna("").str[:1]
+    wb = o["production_basis"].fillna("").str.startswith("Weight")
+    chosen = o["weight_kgco2e"].where(wb, o["spend_kgco2e"])
     return [
         ("SCORE_FORMULA", "integrity", "Score is not 100 x ID x weight x quantity",
          "confidence_score must equal the product of its three factors.",
@@ -56,6 +59,13 @@ def build_checks(o, eur_per_kg, fx):
         ("PROXY_TOTAL", "integrity", "Price-proxy total kg is not value x FX / EUR per kg",
          "For the price proxy the quantity cancels out; a difference means the order value was counted twice.",
          lambda: proxy & proxy_total.notna() & ((o.total_kg_est - proxy_total).abs() > 1 + 0.01 * proxy_total)),
+        ("PRODUCTION_BASIS", "integrity", "Production basis contradicts the manufacturing category",
+         "Weight-based needs category A or B, a production recipe and a weight; the total must equal the chosen method.",
+         lambda: (wb & (~tier.isin(["A", "B"]) | o.composite_ef_kgco2e_per_kg.isna() | ~(o.total_kg_est > 0)))
+         | (o.production_kgco2e.notna() & ((o.production_kgco2e - chosen).abs() > 0.5))),
+        ("WEIGHT_SPEND_GAP", "review", "Weight-based and spend-based differ more than 5x",
+         "Usually a wrong recipe, a wrong weight or a wrong spend sector.",
+         lambda: wb & ((o.weight_vs_spend > 5) | (o.weight_vs_spend < 0.2))),
         ("COMEXT_PRICE_MISMATCH", "review", "WFP price per kg is 0.2-5x off Comext",
          "Usually the wrong CN8 within the 6-digit code, or a quantity in another unit.",
          lambda: flag(o, "COMEXT_PRICE_MISMATCH")),
@@ -85,6 +95,9 @@ def build_checks(o, eur_per_kg, fx):
          "Identification is capped at 0.6.", lambda: flag(o, "GENERIC_ITEM")),
         ("UNQUALIFIED", "info", "Weight is an Unqualified Estimate",
          "No published source for this weight.", lambda: kb.str.contains("Unqualified Estimate")),
+        ("MATERIAL_PROXY", "info", "Weight-based with a labelled proxy material factor",
+         "See material_factors.csv for the proxy and its direction (over- or understates).",
+         lambda: wb & o.recipe_has_proxy.fillna(False).astype(bool)),
         ("TRADE_HUB", "info", "Spend-based goods bought from a re-export hub",
          "The supplier country may not be where the goods were made.", lambda: flag(o, "SUPPLIER_IN_TRADE_HUB")),
     ]
@@ -133,7 +146,11 @@ def main():
             "flags": "flags", "match": "match", "matched": "matched_text", "attributes": "attributes",
             "country": "Supplier_Country_Name", "mg": "Material_Group_Description", "p25": "comext_p25",
             "p75": "comext_p75", "cx_eur_kg": "comext_eur_per_kg", "ratio": "comext_price_ratio",
-            "ceda_ef": "ceda_ef_kgco2e_per_usd", "ceda_geo": "ceda_ef_geography", "spend_co2": "spend_kgco2e"}
+            "ceda_ef": "ceda_ef_kgco2e_per_usd", "ceda_geo": "ceda_ef_geography", "spend_co2": "spend_kgco2e",
+            "ceda_code": "ceda_code", "ceda_target": "ceda_target", "tier": "mfg_category", "mfg_note": "mfg_note",
+            "recipe": "recipe", "cef": "composite_ef_kgco2e_per_kg", "w_co2": "weight_kgco2e",
+            "p_basis": "production_basis", "p_note": "production_basis_note", "p_co2": "production_kgco2e",
+            "wvs": "weight_vs_spend"}
     keys = list(cols)
     rows = [[clean(r[c]) for c in cols.values()] + [row_checks[i]] for i, r in o.iterrows()]
     meta = dict(generated=dt.datetime.now().strftime("%d %b %Y %H:%M"), comext_period=args.comext_period,
@@ -232,6 +249,9 @@ svg .ink { fill: var(--ink) } svg .ink2 { fill: var(--ink-2) }
 .filters label { display: grid; gap: 3px; font-size: 11.5px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .05em }
 input, select { font: 14px var(--font); color: var(--ink); background: var(--raise); border: 1px solid var(--line); border-radius: 5px; padding: 6px 8px; min-width: 0 }
 input[type=search] { width: min(320px, 100%) }
+select { max-width: min(260px, 100%) }
+.filters label { min-width: 0; max-width: 100% }
+main .wrap > section { min-width: 0 }
 button.btn { font: 600 13px var(--font); color: var(--accent); background: var(--accent-wash); border: 0; border-radius: 5px; padding: 7px 12px; cursor: pointer }
 .active-filter { display: flex; flex-wrap: wrap; gap: 6px; font-size: 12.5px; color: var(--ink-2) }
 .scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--surface) }
@@ -279,6 +299,8 @@ tr.sel { background: var(--accent-wash) }
     <div class="panel"><h2>Value by emissions approach</h2><p class="sub">Share of Goods Receipt value (USD)</p><div id="ch-approach"></div><div class="legend" id="lg-approach"></div></div>
     <div class="panel"><h2>Value by confidence band</h2><p class="sub">High 70+ · Medium 40-69 · Low 1-39 · None 0</p><div id="ch-band"></div></div>
     <div class="panel"><h2>WFP price per kg against Comext</h2><p class="sub">COMEXT rows with a Comext kg/unit, EUR per kg, log scales. Outside the shaded 0.2-5x band is flagged. Click a point to open the row.</p><div id="ch-scatter"></div><div class="legend" id="lg-scatter"></div></div>
+    <div class="panel"><h2>Production emissions by manufacturing category</h2><p class="sub">t CO2e, cradle-to-gate. Weight-based = kg x composite BEIS / ADEME material factor; spend-based = OpenCEDA by supplier country.</p><div id="ch-tier"></div><div class="legend" id="lg-tier"></div></div>
+    <div class="panel"><h2>Weight-based against spend-based</h2><p class="sub">Weight-based rows: both methods in t CO2e, by item, top 12 by weight-based emissions. Bars far apart point to a recipe, weight or sector to check.</p><div id="ch-wvs"></div><div class="legend" id="lg-wvs"></div></div>
     <div class="panel"><h2>Where the estimated weight sits</h2><p class="sub">Total estimated tonnes by item, top 12. A bar that looks too long is the first place to look.</p><div id="ch-kg"></div></div>
   </div>
 </section>
@@ -295,6 +317,7 @@ tr.sel { background: var(--accent-wash) }
     <label for="f-ap">Approach<select id="f-ap"></select></label>
     <label for="f-ck">Check<select id="f-ck"></select></label>
     <label for="f-it">Item<select id="f-it"></select></label>
+    <label for="f-ti">Category<select id="f-ti"></select></label>
     <label for="f-sc">Max score<input type="number" id="f-sc" min="0" max="100" step="5" style="width:90px"></label>
     <button class="btn" id="f-clear" type="button">Clear filters</button>
   </div>
@@ -337,6 +360,10 @@ $("#meta").innerHTML = `<span><b>${R.length.toLocaleString()}</b> purchase lines
 const wConf = R.reduce((a, r) => a + (r.score || 0) * (r.value || 0), 0) / totalV;
 const withKg = R.filter(r => r.kg != null).reduce((a, r) => a + (r.value || 0), 0) / totalV;
 const totKg = R.reduce((a, r) => a + (r.total_kg || 0), 0);
+const totCo2 = R.reduce((a, r) => a + (r.p_co2 || 0), 0);
+const isW = r => (r.p_basis || "").startsWith("Weight");
+const wbCo2 = R.filter(isW).reduce((a, r) => a + (r.p_co2 || 0), 0);
+const TIERS = ["A. Simple", "B. Multi-material", "C. Complex", "D. Services and works", "X. Unallocated / out of scope"];
 const integ = D.checks.filter(c => c.severity === "integrity");
 const integBad = integ.filter(c => c.rows > 0);
 const review = D.checks.filter(c => c.severity === "review");
@@ -346,6 +373,7 @@ $("#kpis").innerHTML = [
   ["Confidence, value-weighted", wConf.toFixed(1), "out of 100"],
   ["Value with a kg per unit", pct(withKg), "goods, kits and services"],
   ["Estimated weight", fmtN(totKg / 1000, 0) + " t", "sum of total_kg_est"],
+  ["Production emissions", fmtN(totCo2 / 1000, 0) + " t CO2e", `${pct(wbCo2 / totCo2)} weight-based`],
   ["Integrity checks", integBad.length ? `${integBad.length} failing` : "All pass",
     `${integ.length} rules · <span class="pill ${integBad.length ? "integrity" : "pass"}">${integBad.length ? "Fix first" : "Pass"}</span>`],
   ["Rows to review", reviewRows.size.toLocaleString(), `${review.length} review checks`],
@@ -429,6 +457,43 @@ function scatter() {
   });
 }
 
+function tierChart() {
+  const W = 600, rowH = 36, L = 150, Rr = 120, H = TIERS.length * rowH + 4;
+  const d = TIERS.map(t => { const rs = R.filter(r => r.tier === t);
+    return { t, w: rs.filter(isW).reduce((a, r) => a + (r.p_co2 || 0), 0), s: rs.filter(r => !isW(r)).reduce((a, r) => a + (r.p_co2 || 0), 0), n: rs.length }; });
+  const max = Math.max(...d.map(x => x.w + x.s)) || 1, sc = v => v / max * (W - L - Rr);
+  $("#ch-tier").innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Production emissions by manufacturing category">
+    ${d.map((x, i) => { const y = i * rowH + 6, ww = sc(x.w), sw = sc(x.s), g = ww > 0 && sw > 0 ? 2 : 0;
+      return `<g data-t="${esc(x.t)}" style="cursor:pointer"><rect x="0" y="${y - 4}" width="${W}" height="${rowH}" fill="transparent"></rect>
+      <text x="${L - 10}" y="${y + 15}" text-anchor="end" class="ink2">${esc(x.t.replace(" / out of scope", ""))}</text>
+      ${ww > 0 ? `<rect x="${L}" y="${y + 3}" width="${Math.max(ww, 1)}" height="18" rx="${ww > 8 ? 4 : 1}" fill="var(--s1)"></rect>` : ""}
+      ${sw > 0 ? `<rect x="${L + ww + g}" y="${y + 3}" width="${Math.max(sw - g, 1)}" height="18" rx="${sw > 8 ? 4 : 1}" fill="var(--s2)"></rect>` : ""}
+      <text x="${L + ww + sw + 8}" y="${y + 16}" class="ink">${fmtN((x.w + x.s) / 1000, 0)} t · ${pct((x.w + x.s) / totCo2)}</text></g>`; }).join("")}</svg>`;
+  $("#lg-tier").innerHTML = `<span><i style="background:var(--s1)"></i>Weight-based <b>${fmtN(wbCo2 / 1000, 0)} t</b></span><span><i style="background:var(--s2)"></i>Spend-based <b>${fmtN((totCo2 - wbCo2) / 1000, 0)} t</b></span>`;
+  $("#ch-tier").querySelectorAll("g").forEach(g => { const x = d.find(v => v.t === g.dataset.t);
+    g.addEventListener("mousemove", ev => showTip(ev, `<div class="t">${esc(x.t)}</div><div class="r">Weight-based ${fmtN(x.w / 1000, 1)} t · spend-based ${fmtN(x.s / 1000, 1)} t</div><div class="r">${x.n} lines · click to list rows</div>`));
+    g.addEventListener("mouseleave", hideTip);
+    g.addEventListener("click", () => { hideTip(); setFilters({ tier: x.t, sort: "p_co2" }); go("rows"); }); });
+}
+
+function wvsChart() {
+  const by = {}; R.filter(isW).forEach(r => { const b = by[r.item_id] = by[r.item_id] || { id: r.item_id, name: (r.item_std || "").split(",")[0], w: 0, s: 0 }; b.w += r.w_co2 || 0; b.s += r.spend_co2 || 0; });
+  const top = Object.values(by).sort((a, b) => b.w - a.w).slice(0, 12);
+  const W = 600, rowH = 30, L = 170, Rr = 110, H = top.length * rowH + 4, max = Math.max(...top.map(t => Math.max(t.w, t.s))) || 1, sc = v => v / max * (W - L - Rr);
+  $("#ch-wvs").innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Weight-based against spend-based emissions by item">
+    ${top.map((t, i) => { const y = i * rowH + 4;
+      return `<g data-id="${esc(t.id)}" style="cursor:pointer"><rect x="0" y="${y - 2}" width="${W}" height="${rowH}" fill="transparent"></rect>
+      <text x="${L - 10}" y="${y + 15}" text-anchor="end" class="ink2">${esc(t.name.length > 26 ? t.name.slice(0, 25) + "…" : t.name)}</text>
+      <rect x="${L}" y="${y + 2}" width="${Math.max(sc(t.w), 1)}" height="10" rx="3" fill="var(--s1)"></rect>
+      <rect x="${L}" y="${y + 14}" width="${Math.max(sc(t.s), 1)}" height="10" rx="3" fill="var(--s2)"></rect>
+      <text x="${L + Math.max(sc(t.w), sc(t.s)) + 8}" y="${y + 17}" class="ink">${t.s ? (t.w / t.s).toFixed(1) + "x" : "–"}</text></g>`; }).join("")}</svg>`;
+  $("#lg-wvs").innerHTML = `<span><i style="background:var(--s1)"></i>Weight-based</span><span><i style="background:var(--s2)"></i>Spend-based (OpenCEDA)</span><span>Label: weight ÷ spend</span>`;
+  $("#ch-wvs").querySelectorAll("g").forEach(g => { const t = top.find(x => x.id === g.dataset.id);
+    g.addEventListener("mousemove", ev => showTip(ev, `<div class="t">${esc(t.name)}</div><div class="r">Weight-based ${fmtN(t.w / 1000, 1)} t · spend-based ${fmtN(t.s / 1000, 1)} t</div>`));
+    g.addEventListener("mouseleave", hideTip);
+    g.addEventListener("click", () => { hideTip(); setFilters({ item: t.id, sort: "p_co2" }); go("rows"); }); });
+}
+
 function kgChart() {
   const by = {}; R.forEach(r => { if (r.total_kg > 0) { const k = r.item_std ? r.item_id : "(none)"; by[k] = by[k] || { kg: 0, n: 0, name: r.item_std ? r.item_std.split(",")[0] : k, id: r.item_id }; by[k].kg += r.total_kg; by[k].n++; } });
   const top = Object.values(by).sort((a, b) => b.kg - a.kg).slice(0, 12);
@@ -462,20 +527,21 @@ function renderChecks() {
 }
 
 // ---------------------------------------------------------------- rows table
-const F = { q: "", ap: "", ck: "", item: "", band: "", max: "", sort: "value", dir: -1, page: 0 };
+const F = { q: "", ap: "", ck: "", item: "", tier: "", band: "", max: "", sort: "value", dir: -1, page: 0 };
 const PAGE = 100;
 const COLS = [
   ["desc", "Description", "desc"], ["item_std", "Standard item"], ["cn", "CN", "code"], ["approach", "Approach"],
   ["kg", "kg / unit", "num"], ["route", "Weight route"], ["units", "Units", "num"], ["total_kg", "Total kg", "num"],
-  ["value", "Value USD", "num"], ["unit_price", "USD / unit", "num"], ["score", "Score", "num"], ["checks", "Checks"],
+  ["value", "Value USD", "num"], ["unit_price", "USD / unit", "num"], ["tier", "Category"], ["p_co2", "kg CO2e", "num"],
+  ["p_basis", "Basis"], ["score", "Score", "num"], ["checks", "Checks"],
 ];
-function setFilters(p) { Object.assign(F, { q: "", ap: "", ck: "", item: "", band: "", max: "", page: 0 }, p);
+function setFilters(p) { Object.assign(F, { q: "", ap: "", ck: "", item: "", tier: "", band: "", max: "", page: 0 }, p);
   if (p.sort) { F.sort = p.sort; F.dir = -1; } syncControls(); renderRows(); }
-function syncControls() { $("#f-q").value = F.q; $("#f-ap").value = F.ap; $("#f-ck").value = F.ck; $("#f-it").value = F.item; $("#f-sc").value = F.max; }
+function syncControls() { $("#f-q").value = F.q; $("#f-ap").value = F.ap; $("#f-ck").value = F.ck; $("#f-it").value = F.item; $("#f-ti").value = F.tier; $("#f-sc").value = F.max; }
 function bandOf(s) { return s >= 70 ? "High" : s >= 40 ? "Medium" : s > 0 ? "Low" : "None"; }
 function filtered() {
   const q = F.q.trim().toLowerCase();
-  return R.filter(r => (!F.ap || r.approach === F.ap) && (!F.ck || r.checks.includes(F.ck)) && (!F.item || r.item_id === F.item)
+  return R.filter(r => (!F.ap || r.approach === F.ap) && (!F.ck || r.checks.includes(F.ck)) && (!F.item || r.item_id === F.item) && (!F.tier || r.tier === F.tier)
     && (!F.band || bandOf(r.score || 0) === F.band) && (F.max === "" || (r.score || 0) <= +F.max)
     && (!q || [r.desc, r.item_std, r.cn, r.item_id, r.country].some(v => String(v ?? "").toLowerCase().includes(q))));
 }
@@ -489,6 +555,9 @@ function cell(r, k, cls) {
   if (k === "total_kg") return fmtN(v, 0);
   if (k === "value") return fmtN(v, 0);
   if (k === "unit_price") return fmtN(v, 2);
+  if (k === "p_co2") return fmtN(v, 0);
+  if (k === "tier") return esc((v || "–").split(".")[0]);
+  if (k === "p_basis") return esc((v || "–").split(" ")[0]);
   if (k === "route") return esc(v || (r.kg_basis ? "Research" : "–"));
   return esc(v ?? "–");
 }
@@ -505,10 +574,10 @@ function renderRows() {
   const val = rows.reduce((a, r) => a + (r.value || 0), 0);
   $("#p-info").textContent = `${rows.length.toLocaleString()} rows · ${fmtUSD(val)} (${pct(val / totalV)} of value) · page ${F.page + 1} of ${pages}`;
   $("#p-prev").disabled = F.page === 0; $("#p-next").disabled = F.page >= pages - 1;
-  const act = [F.ap && "Approach: " + shortAp(F.ap), F.ck && "Check: " + CK[F.ck].title, F.item && "Item: " + F.item, F.band && "Band: " + F.band, F.max !== "" && "Score ≤ " + F.max, F.q && `Search: “${F.q}”`].filter(Boolean);
+  const act = [F.ap && "Approach: " + shortAp(F.ap), F.ck && "Check: " + CK[F.ck].title, F.item && "Item: " + F.item, F.tier && "Category: " + F.tier, F.band && "Band: " + F.band, F.max !== "" && "Score ≤ " + F.max, F.q && `Search: “${F.q}”`].filter(Boolean);
   $("#f-summary").innerHTML = act.map(a => `<span class="tag">${esc(a)}</span>`).join("");
   $("#t-rows thead").querySelectorAll("th").forEach(th => th.addEventListener("click", () => {
-    F.dir = F.sort === th.dataset.k ? -F.dir : (["desc", "item_std", "cn", "approach", "route"].includes(th.dataset.k) ? 1 : -1); F.sort = th.dataset.k; renderRows(); }));
+    F.dir = F.sort === th.dataset.k ? -F.dir : (["desc", "item_std", "cn", "approach", "route", "tier", "p_basis"].includes(th.dataset.k) ? 1 : -1); F.sort = th.dataset.k; renderRows(); }));
   $("#t-rows tbody").querySelectorAll("tr[data-i]").forEach(tr => {
     tr.addEventListener("click", () => openDetail(+tr.dataset.i));
     tr.addEventListener("keydown", e => { if (e.key === "Enter") openDetail(+tr.dataset.i); });
@@ -531,6 +600,12 @@ function openDetail(i) {
       ["Total kg", fmtN(r.total_kg, 1)], ["Confidence", `<b>${r.score}</b> · ${esc(r.conf_basis)}`],
       ["Spend factor", r.ceda_ef == null ? "–" : `${fmtN(r.ceda_ef, 3)} kgCO2e/USD · ${esc(r.ceda_geo)}`],
       ["Checks", r.checks.length ? r.checks.map(c => `<span class="tag ${CK[c].severity}" title="${esc(CK[c].title)}">${c}</span>`).join(" ") : "None"]])}
+    ${dl([["Manufacturing category", esc(r.tier || "–") + (r.mfg_note ? " · " + esc(r.mfg_note) : "")],
+      ["Material recipe", esc(r.recipe || "–")], ["Composite factor", r.cef == null ? "–" : fmtN(r.cef, 3) + " kg CO2e per kg"],
+      ["Weight-based", r.w_co2 == null ? "–" : fmtN(r.w_co2, 1) + " kg CO2e"],
+      ["Spend-based", r.spend_co2 == null ? "–" : `${fmtN(r.spend_co2, 1)} kg CO2e · ${esc(r.ceda_code)} ${esc(r.ceda_target)}`],
+      ["Basis used", `<b>${esc(r.p_basis || "–")}</b> · ${esc(r.p_note || "")}`],
+      ["Production emissions", r.p_co2 == null ? "–" : `<b>${fmtN(r.p_co2, 1)} kg CO2e</b>` + (r.wvs != null ? ` · weight ÷ spend ${r.wvs}` : "")]])}
     <div><button class="btn" type="button" id="d-close">Close</button></div></div>`;
   $("#d-close").addEventListener("click", () => { el.hidden = true; });
   el.scrollIntoView({ block: "nearest" });
@@ -539,7 +614,8 @@ function openDetail(i) {
 // ---------------------------------------------------------------- items table
 function renderItems() {
   const by = {};
-  R.forEach(r => { if (!r.item_id) return; const b = by[r.item_id] = by[r.item_id] || { id: r.item_id, name: (r.item_std || "").split(",")[0], cn: r.cn, ap: {}, n: 0, v: 0, kg: [], upk: [], checks: 0, score: 0 };
+  R.forEach(r => { if (!r.item_id) return; const b = by[r.item_id] = by[r.item_id] || { id: r.item_id, name: (r.item_std || "").split(",")[0], cn: r.cn, tier: r.tier, cef: r.cef, ap: {}, n: 0, v: 0, kg: [], upk: [], checks: 0, score: 0, co2: 0, wc: 0, sc: 0 };
+    b.co2 += r.p_co2 || 0; if (isW(r)) { b.wc += r.w_co2 || 0; b.sc += r.spend_co2 || 0; }
     b.n++; b.v += r.value || 0; b.score += (r.score || 0) * (r.value || 0); b.ap[r.approach] = (b.ap[r.approach] || 0) + 1;
     if (r.kg > 0) b.kg.push(r.kg); if (r.kg > 0 && r.unit_price > 0) b.upk.push(r.unit_price / r.kg);
     if (r.checks.some(c => CK[c].severity === "review")) b.checks++; });
@@ -550,13 +626,15 @@ function renderItems() {
     kgm: med(b.kg), kgmin: Math.min(...b.kg), kgmax: Math.max(...b.kg), upkm: med(b.upk), spread: b.upk.length > 2 ? qnt(b.upk, .9) / qnt(b.upk, .1) : null,
     conf: b.v ? b.score / b.v : 0, ap: Object.entries(b.ap).sort((x, y) => y[1] - x[1])[0][0] })).sort((a, b) => b.v - a.v);
   $("#t-items thead").innerHTML = `<tr><th>Item</th><th>CN</th><th>Main approach</th><th class="num">Lines</th><th class="num">Value USD</th><th class="num">kg / unit (median)</th>
-    <th class="num">kg range</th><th class="num">USD / kg (median)</th><th class="num">USD/kg spread p90/p10</th><th class="num">Lines to review</th><th class="num">Confidence</th></tr>`;
+    <th class="num">kg range</th><th class="num">USD / kg (median)</th><th class="num">USD/kg spread p90/p10</th><th class="num">Lines to review</th><th class="num">Confidence</th><th>Category</th><th class="num">kg CO2e / kg</th><th class="num">t CO2e</th><th class="num">Weight ÷ spend</th></tr>`;
   $("#t-items tbody").innerHTML = items.map(b => `<tr data-id="${esc(b.id)}" tabindex="0"><td>${esc(b.name)} <span class="mono" style="color:var(--muted)">${esc(b.id)}</span></td>
     <td class="code">${esc(b.cn || "–")}</td><td>${esc(shortAp(b.ap))}</td><td class="num">${b.n}</td><td class="num">${fmtN(b.v, 0)}</td>
     <td class="num">${b.kgm == null ? "–" : fmtN(b.kgm, b.kgm < 1 ? 3 : 1)}</td><td class="num">${b.kg.length ? fmtN(b.kgmin, 2) + " – " + fmtN(b.kgmax, 2) : "–"}</td>
     <td class="num">${b.upkm == null ? "–" : fmtN(b.upkm, 2)}</td>
     <td class="num">${b.spread == null ? "–" : (b.spread > 10 ? `<span class="pill review">${fmtN(b.spread, 0)}x</span>` : fmtN(b.spread, 1) + "x")}</td>
-    <td class="num">${b.checks || "–"}</td><td class="num">${b.conf.toFixed(0)}</td></tr>`).join("");
+    <td class="num">${b.checks || "–"}</td><td class="num">${b.conf.toFixed(0)}</td><td>${esc((b.tier || "–").split(".")[0])}</td>
+    <td class="num">${b.cef == null ? "–" : fmtN(b.cef, 2)}</td><td class="num">${fmtN(b.co2 / 1000, 1)}</td>
+    <td class="num">${b.sc > 0 ? ((b.wc / b.sc) > 5 || (b.wc / b.sc) < 0.2 ? `<span class="pill review">${(b.wc / b.sc).toFixed(1)}x</span>` : (b.wc / b.sc).toFixed(1) + "x") : "–"}</td></tr>`).join("");
   $("#t-items tbody").querySelectorAll("tr").forEach(tr => {
     const f = () => { setFilters({ item: tr.dataset.id }); go("rows"); };
     tr.addEventListener("click", f); tr.addEventListener("keydown", e => { if (e.key === "Enter") f(); }); });
@@ -577,13 +655,15 @@ let qT; $("#f-q").addEventListener("input", e => { clearTimeout(qT); qT = setTim
 $("#f-ap").addEventListener("change", e => { F.ap = e.target.value; F.page = 0; renderRows(); });
 $("#f-ck").addEventListener("change", e => { F.ck = e.target.value; F.page = 0; renderRows(); });
 $("#f-it").addEventListener("change", e => { F.item = e.target.value; F.page = 0; renderRows(); });
+$("#f-ti").innerHTML = `<option value="">All</option>` + TIERS.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join("");
+$("#f-ti").addEventListener("change", e => { F.tier = e.target.value; F.page = 0; renderRows(); });
 $("#f-sc").addEventListener("input", e => { F.max = e.target.value; F.page = 0; renderRows(); });
 $("#f-clear").addEventListener("click", () => setFilters({}));
 $("#p-prev").addEventListener("click", () => { F.page--; renderRows(); });
 $("#p-next").addEventListener("click", () => { F.page++; renderRows(); });
 $("#i-q").addEventListener("input", renderItems);
 
-approachChart(); bandChart(); scatter(); kgChart(); renderChecks(); renderRows(); renderItems();
+approachChart(); bandChart(); scatter(); tierChart(); wvsChart(); kgChart(); renderChecks(); renderRows(); renderItems();
 let start = (location.hash || "").slice(1);
 if (!["overview", "checks", "rows", "items"].includes(start)) { try { start = localStorage.getItem("nfi-tab") || "overview"; } catch (e) { start = "overview"; } }
 go(["overview", "checks", "rows", "items"].includes(start) ? start : "overview");

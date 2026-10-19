@@ -48,6 +48,35 @@ def test_every_cn_exists_in_current_cn_year():
     assert not bad, f"CN codes not valid in the current CN year: {bad}"
 
 
+# ---------------------------------------------------------------- manufacturing category and recipes
+
+TIERS = {"A. Simple", "B. Multi-material", "C. Complex", "D. Services and works", "X. Unallocated / out of scope"}
+
+
+def test_every_item_has_a_category_and_a_spend_sector():
+    for v in VOCAB:
+        assert v["mfg_category"] in TIERS, v["item_id"]
+        if v["mfg_category"][0] != "X":
+            assert v["ceda_code"], f"{v['item_id']} has no OpenCEDA sector"
+
+
+def test_recipes_are_complete_and_sum_to_one():
+    rec = pd.read_csv(path("recipes.csv"))
+    mats = set(pd.read_csv(path("material_factors.csv")).material_key)
+    assert set(rec.material_key) <= mats
+    sums = rec.groupby("item_id").mass_share.sum()
+    assert ((sums - 1).abs() < 1e-6).all(), sums[(sums - 1).abs() >= 1e-6]
+    ids = {v["item_id"] for v in VOCAB}
+    assert set(rec.item_id) <= ids
+    assert rec.share_basis.notna().all()
+
+
+def test_material_factors_trace_to_a_source():
+    m = pd.read_csv(path("material_factors.csv"))
+    assert m.source.isin(["BEIS 2025", "ADEME Base Carbone"]).all()
+    assert (m.kgco2e_per_kg > 0).all() and m.source_detail.notna().all()
+
+
 # ---------------------------------------------------------------- parsing
 
 

@@ -435,7 +435,7 @@ const totKg = R.reduce((a, r) => a + (r.total_kg || 0), 0);
 const totCo2 = R.reduce((a, r) => a + (r.p_co2 || 0), 0);
 const isW = r => (r.p_basis || "").startsWith("Weight");
 const wbCo2 = R.filter(isW).reduce((a, r) => a + (r.p_co2 || 0), 0);
-const TIERS = ["A. Simple", "B. Multi-material", "C. Complex", "D. Services and works", "X. Unallocated / out of scope"];
+const TIERS = ["A. Simple", "B. Multi-material", "C. Complex", "D. Services and works", "X. Unallocated"];
 const integ = D.checks.filter(c => c.severity === "integrity");
 const integBad = integ.filter(c => c.rows > 0);
 const review = D.checks.filter(c => c.severity === "review");
@@ -713,7 +713,7 @@ function renderItems() {
 }
 
 // ---------------------------------------------------------------- emissions breakdown (click-through treemap)
-const TIER_COLOR = { "A. Simple": "--s1", "B. Multi-material": "--s2", "C. Complex": "--s3", "D. Services and works": "--s4", "X. Unallocated / out of scope": "--axis" };
+const TIER_COLOR = { "A. Simple": "--s1", "B. Multi-material": "--s2", "C. Complex": "--s3", "D. Services and works": "--s4", "X. Unallocated": "--axis" };
 let EM = { by: "item", path: [] };
 function emTree() {
   const root = { name: "All production emissions", children: [] };

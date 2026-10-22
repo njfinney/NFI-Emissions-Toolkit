@@ -60,7 +60,13 @@ quantity-unit mismatch. Not computed for the price proxy (ratio 1 by constructio
 5. **Weight hierarchy** (best first): weight stated in text → humanitarian catalogue
    (IFRC/UNHCR) → parametric (area × g/m², area × thickness × density, rope length × linear
    mass) → Comext median kg per supplementary unit → **price proxy** (unit price ÷ Comext EUR/kg
-   for the CN code) → blank.
+   for the CN code) → **last resort**, labelled "Unqualified Estimate" in `kg_basis`: the median kg/unit of
+   the item's other lines (when the line has no usable value), or value ÷ the median USD per kg of the other
+   NFI goods in the same group (all goods for kits, whose contents are mixed). Every goods and kit line gets
+   a `kg_per_unit`; only services, works, contract adjustments and unidentified (`UNCLEAR`) lines stay blank.
+   Medicines, seeds, plants and food use the same ladder (medicines and devices map to CN 3004 / 9018, seeds
+   to 120991, seedlings to 060220 piece weights, ration packs and foods to CN 21069092 / 1905 / 1604 / 2008 /
+   210690), so they get a shipping weight; their production emissions stay spend-based.
 6. **Quantity sanity checks.** Price per kg (or per unit) is compared with the item's own
    median. Flags: `LUMP_SUM` (qty 1, large value), `QTY_UNIT_SUSPECT` (e.g. hygiene kits
    bought "per pallet"), `QTY_NOT_INTEGER` (probably m² or kg). Units are only re-estimated
@@ -104,7 +110,7 @@ item kg x mass share x material factor; spend-based items show their OpenCEDA se
 ## Emissions approach (first rule that applies)
 1. **Unallocated** - scope UNCLEAR, contract adjustments (contingency, variation, retention, tax,
    overhead), or zero / negative value.
-2. **Spend-based (OpenCEDA)** - services, works, and out-of-scope purchases (food, medicines).
+2. **Spend-based (OpenCEDA)** - services and works.
 3. **Average Data (Research Derived)** - goods/kits with a kg/unit from the description, a
    humanitarian catalogue, a parametric calculation, an engineering standard, a reviewer, or an
    Unqualified Estimate.
@@ -169,7 +175,7 @@ Every item has a `mfg_category` in `vocabulary.csv` (with a one-line `mfg_note`)
 | B. Multi-material | A few materials, no electronics | Weight-based: kg x composite of a rough bill of materials |
 | C. Complex | Electronics, batteries, engines, kits | Spend-based (OpenCEDA); BEIS electrical-item factor kept as a comparison where one fits |
 | D. Services and works | Not a physical good | Spend-based (OpenCEDA) |
-| X. Unallocated / out of scope | Adjustments, unclear, food / medicine / plants | Spend-based, or none when Unallocated |
+| X. Unallocated | Contract adjustments and unclear lines | None (blank) |
 
 A and B fall back to spend-based when the row has no weight or no open material factor exists
 (ceramic tiles, paint, chemicals, sinks of unknown material); `production_basis_note` says why.

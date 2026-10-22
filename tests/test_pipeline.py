@@ -50,7 +50,7 @@ def test_every_cn_exists_in_current_cn_year():
 
 # ---------------------------------------------------------------- manufacturing category and recipes
 
-TIERS = {"A. Simple", "B. Multi-material", "C. Complex", "D. Services and works", "X. Unallocated / out of scope"}
+TIERS = {"A. Simple", "B. Multi-material", "C. Complex", "D. Services and works", "X. Unallocated"}
 
 
 def test_every_item_has_a_category_and_a_spend_sector():
@@ -110,6 +110,10 @@ GOLDEN = {
     "MEGAPHONES": "MEGAPHONE", "Loudspeakers": "AUDIO", "Whistle 115 DB": "WHISTLE",
     "Heater, wood burning stove, for tent": "STOVE_HEATER", "Portable gas stove": "STOVE_GAS",
     "Hybrid/Solar generator": "INVERTER", "Tarpaulins 4x6 M, CIF Khartoum": "TARPAULIN",
+    "Vancomycin 500mg inj": "MEDICINE", "Hemoglobinometro Portatil Marca: EKF": "MED_DEVICE",
+    "ACHAT DES MUAC ADULTS": "MED_DEVICE", "Cabbage seed": "SEED", "Fruit seedling for SRV-04 Dists": "SEEDLING",
+    "DD MREs CRP 24 HR Occidental D": "FOOD_RATION", "CO- Solid Tuna": "FOOD_FISH", "CO- Biscuit": "FOOD_BAKERY",
+    "Compost Soil for Saveh workshop": "COMPOST",
 }
 
 
@@ -163,3 +167,15 @@ def test_cradle_to_gate_columns_reconcile():
     assert (o[t].dropna() >= 0).all()
     ok = o[u].notna()
     assert ((o.loc[ok, u] * o.loc[ok, "units_est"] - o.loc[ok, t]).abs() < 1).all()
+
+
+@pytest.mark.skipif(not os.path.exists(path("nfi_classified.csv")), reason="no pipeline output yet")
+def test_every_goods_line_has_a_weight():
+    """Only services, works, contract adjustments and unidentified lines may lack a kg per unit."""
+    o = pd.read_csv(path("nfi_classified.csv"))
+    goods = o[o.scope.isin(["GOODS", "KIT"])]
+    assert goods.kg_per_unit.notna().all(), goods[goods.kg_per_unit.isna()].Detailed_Description.head().tolist()
+    assert goods.kg_basis.notna().all() and goods.total_kg_est.notna().all()
+    # last-resort weights are labelled, so they can be found and replaced
+    fallback = o[o.kg_basis.fillna("").str.startswith("Unqualified Estimate: ")]
+    assert (fallback.confidence_score <= 30).all()

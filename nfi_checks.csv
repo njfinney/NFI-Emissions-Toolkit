@@ -7,17 +7,17 @@ PROXY_TOTAL,integrity,Price-proxy total kg is not value x FX / EUR per kg,For th
 PRODUCTION_BASIS,integrity,Production basis contradicts the manufacturing category,"Weight-based needs category A or B, a production recipe and a weight; the total must equal the chosen method.",0,0.0,0.0
 CRADLE_TO_GATE_COLS,integrity,Cradle-to-gate columns do not match the chosen method,Total must equal the weight- or spend-based figure for the row's method (blank only when unallocated); unit x units must equal the total.,0,0.0,0.0
 WEIGHT_SPEND_GAP,review,Weight-based and spend-based differ more than 5x,"Usually a wrong recipe, a wrong weight or a wrong spend sector.",418,4142744.0,0.07305530946090509
-COMEXT_PRICE_MISMATCH,review,WFP price per kg is 0.2-5x off Comext,"Usually the wrong CN8 within the 6-digit code, or a quantity in another unit.",157,956341.0,0.016864616231452252
-QTY_UNIT_SUSPECT,review,Price per kg far from the item's own median,"The quantity may be in kg, m, m2 or pallets rather than pieces.",179,2741837.0,0.04835098440221255
-LUMP_SUM,review,Quantity 1 with a large value,Units were re-estimated from the item's typical unit price.,99,1468940.0,0.025904054481643547
+COMEXT_PRICE_MISMATCH,review,WFP price per kg is 0.2-5x off Comext,"Usually the wrong CN8 within the 6-digit code, or a quantity in another unit.",160,963549.0,0.016991725864727733
+QTY_UNIT_SUSPECT,review,Price per kg far from the item's own median,"The quantity may be in kg, m, m2 or pallets rather than pieces.",151,2714317.0,0.047865682361737896
+LUMP_SUM,review,Quantity 1 with a large value,Units were re-estimated from the item's typical unit price.,105,1486807.0,0.026219130482993857
 KG_CONCENTRATION,review,One row carries over 2% of all estimated kg,Large single contributions are where magnitude errors hide.,1,6478.0,0.00011423643234719382
-PRICE_PER_KG_EXTREME,review,"Implied price below $0.05/kg or above $2,000/kg",Physically unlikely for goods; check the quantity and the weight.,44,800896.0,0.014123417987208729
-GOODS_NO_WEIGHT,review,Goods or kit without a kg per unit,These fall back to spend-based factors.,122,2538590.0,0.044766820745949794
+PRICE_PER_KG_EXTREME,review,"Implied price below $0.05/kg or above $2,000/kg",Physically unlikely for goods; check the quantity and the weight.,51,809002.0,0.014266363421078187
+GOODS_NO_WEIGHT,review,Goods or kit without a kg per unit,These fall back to spend-based factors.,0,0.0,0.0
 WEAK_MATCH,review,Item inferred from a fallback match or the material group,The description did not match on its head noun; check the item.,32,83568.0,0.0014736817194180756
 PAIR_QTY_CHECK,review,Weight is per pair but the text does not say pairs,Footwear and gloves: the quantity may count single items.,35,90843.0,0.001601972865655469
 QTY_NOT_INTEGER,review,Quantity is not a whole number,"Usually m2, m or kg rather than pieces.",32,571332.0,0.010075166620220274
-WIDE_COMEXT,info,Comext spread is wide (p75/p25 > 3),The median is used but the item type varies a lot within the code.,268,2259180.0,0.039839559004342905
+WIDE_COMEXT,info,Comext spread is wide (p75/p25 > 3),The median is used but the item type varies a lot within the code.,271,2266388.0,0.039966668637618386
 GENERIC_ITEM,info,"Catch-all item (tent unspecified, other kit)",Identification is capped at 0.6.,71,800773.0,0.014121248941024922
-UNQUALIFIED,info,Weight is an Unqualified Estimate,No published source for this weight.,237,7345160.0,0.12952838428825475
+UNQUALIFIED,info,Weight is an Unqualified Estimate,No published source for this weight.,391,9883750.0,0.17429520503420454
 MATERIAL_PROXY,info,Weight-based with a labelled proxy material factor,See material_factors.csv for the proxy and its direction (over- or understates).,1204,20412529.0,0.3599651880431664
-TRADE_HUB,info,Spend-based goods bought from a re-export hub,The supplier country may not be where the goods were made.,2,6943.0,0.00012243648499329527
+TRADE_HUB,info,Spend-based goods bought from a re-export hub,The supplier country may not be where the goods were made.,0,0.0,0.0

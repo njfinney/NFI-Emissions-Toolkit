@@ -473,6 +473,32 @@ def main():
         out.loc[idx, "data_score"] = DS["PRICE_PROXY"]
         out.loc[idx, "comext_route"] = "PRICE_PROXY"
 
+    # ---- last resort, so every goods / kit line has a kg per unit (services and works stay blank)
+    goods_scope = out.scope.isin(["GOODS", "KIT"])
+    known = out.kg_per_unit.notna() & goods_scope
+    miss = out.kg_per_unit.isna() & goods_scope
+    # (a) same item, other lines: e.g. the line has no recorded value, so the price proxy cannot run
+    item_med = out[known].groupby("item_id").kg_per_unit.median()
+    a = miss & out.item_id.isin(item_med.index)
+    out.loc[a, "kg_per_unit"] = out.loc[a, "item_id"].map(item_med).round(6)
+    out.loc[a, "kg_basis"] = "Unqualified Estimate: median kg/unit of the other NFI lines of this item (no usable value on this line)"
+    out.loc[a, "data_score"] = DS["UNQUALIFIED"]
+    # (b) item with no weight on any line (kits, catch-all items): unit price / median USD per kg of the
+    # other goods in the same group
+    miss = out.kg_per_unit.isna() & goods_scope & (out["unit_price_usd"] > 0)
+    usd_kg = (out["unit_price_usd"] / out["kg_per_unit"]).where(known & (out["unit_price_usd"] > 0))
+    grp_med = usd_kg.groupby(out["group"]).median()
+    # the Kits group is dominated by bulky hygiene kits; kit contents are mixed goods, so use all goods
+    grp_med["Kits"] = usd_kg.median()
+    b = miss & out["group"].isin(grp_med.index)
+    out["_fb_usd_kg"] = float("nan")
+    out.loc[b, "_fb_usd_kg"] = out.loc[b, "group"].map(grp_med)
+    out.loc[b, "kg_per_unit"] = (out.loc[b, "unit_price_usd"] / out.loc[b, "_fb_usd_kg"]).round(6)
+    scope_txt = out.loc[b, "group"].where(out.loc[b, "group"] != "Kits", "all groups (kit contents are mixed)")
+    out.loc[b, "kg_basis"] = ("Unqualified Estimate: value / median USD per kg (" + out.loc[b, "_fb_usd_kg"].round(2).astype(str)
+                              + ") of the other NFI goods in " + scope_txt)
+    out.loc[b, "data_score"] = DS["UNQUALIFIED"]
+
     # bulk materials: a 'unit' price far below one bag means the quantity was recorded in kg
     bulk = out["item_id"].isin(BULK_KG_ITEMS) & (out["unit_price_usd"] < 1.5)
     out.loc[bulk, "kg_per_unit"] = 1.0
@@ -527,8 +553,14 @@ def main():
     too_cheap = out["flags"].str.contains("QTY_UNIT_SUSPECT") & (ratio < 0.2) & out["kg_per_unit"].notna()
     pallets = pallets | too_cheap
     hint = out["qty_hint"].where(out["qty_hint"].notna())
-    sus = (lump | pallets | (out["flags"].str.contains("LUMP_SUM") & hint.notna())) 
+    # a whole order entered as 'quantity 1' for an item weighed per piece (e.g. seedlings by the plant):
+    # implied pieces = value x FX / Comext EUR per kg / kg per piece
+    piece_price = out["comext_eur_per_kg"].astype(float) * out["kg_per_unit"] / args.usd_to_eur
+    piece_lump = (out["comext_route"].isin(["COMEXT_PST", "COMEXT_PA"]) & (out["Quantity"] <= 1)
+                  & (out["unit_price_usd"] > 20 * piece_price) & typical_up.isna())
+    sus = (lump | pallets | piece_lump | (out["flags"].str.contains("LUMP_SUM") & hint.notna())) 
     est = out["Goods_Receipt_Value_USD"] / typical_up
+    est = est.where(~piece_lump, out["Goods_Receipt_Value_USD"] / piece_price)
     units = out["Quantity"].astype(float).where(~sus, hint.fillna(est))
     # a rescaled bulk-material row inherits the kg-based unit of its peers
     bulk_rescaled = sus & out["item_id"].isin(BULK_KG_ITEMS) & (typical_up < 1.5) & hint.isna()
@@ -537,13 +569,18 @@ def main():
     out.loc[bulk_rescaled, "data_score"] = DS["QTY_IN_KG"]
     out["units_est"] = units.round(1)
     out["units_basis"] = ["qty as recorded" if not s else ("qty stated in text" if pd.notna(h) else
-                          "value / item median unit price") for s, h in zip(sus, hint)]
+                          "value / Comext price of one piece" if pl else "value / item median unit price")
+                          for s, h, pl in zip(sus, hint, piece_lump)]
     # price proxy: total kg = value x FX / EUR per kg, so the quantity cancels out. Where units
     # were re-estimated (lump sums), spread that total over the new units instead of
     # multiplying a whole-order 'unit' weight by them again.
     pp = out["kg_basis"].astype(str).str.startswith("price proxy") & (out["units_basis"] != "qty as recorded")
     pp_total = out.loc[pp, "Goods_Receipt_Value_USD"] * args.usd_to_eur / out.loc[pp, "cn"].map(eur_per_kg)
     out.loc[pp, "kg_per_unit"] = (pp_total / out.loc[pp, "units_est"]).round(6)
+    # same for the value-based group estimate: total kg = value / USD per kg, whatever the unit count
+    fb = out["_fb_usd_kg"].notna() & (out["units_basis"] != "qty as recorded")
+    out.loc[fb, "kg_per_unit"] = (out.loc[fb, "Goods_Receipt_Value_USD"] / out.loc[fb, "_fb_usd_kg"]
+                                  / out.loc[fb, "units_est"]).round(6)
     out["total_kg_est"] = (out["units_est"] * out["kg_per_unit"]).round(1)
 
     # ---- proposed emissions calculation approach (applied in this order)

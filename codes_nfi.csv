@@ -1,8 +1,17 @@
 code,label
+060220,Seedling / planting stock
+120991,Seeds (vegetable)
+1604,Canned fish
+1905,Biscuits / bread / bars
+2008,Nuts / peanut butter / sweet corn
+210690,Food preparations / ration pack
+21069092,Ration pack (food preparations n.e.s.)
 251710,Sand / gravel / aggregate
 252020,Plaster / gypsum
 252329,Cement
+3004,Medicine
 300650,First aid kit / medical equipment
+3101,Compost
 320910,Paint
 321490,Tile adhesive / grout
 340250,Cleaning product
@@ -116,6 +125,7 @@ code,label
 871680,Wheelbarrow
 901580,Weather / measuring instrument
 901720,Ruler / geometry set
+9018,Medical device / instrument
 920890,Whistle
 940169,Chair
 940320,Camp bed

@@ -1,11 +1,14 @@
 Supplier_Country_Name,iso3,un_subregion,in_ceda
 Afghanistan,AFG,Central Asia,True
+Algeria,DZA,Northern Africa,True
+Antigua and Barbuda,ATG,Caribbean,True
 Armenia,ARM,Western Asia,False
 Austria,AUT,Western Europe,True
 Bangladesh,BGD,Central Asia,True
 Barbados,BRB,Caribbean,True
 Belgium,BEL,Western Europe,True
 Bhutan,BTN,Central Asia,True
+Bolivia (Plurinational State of),BOL,South America,True
 Burkina Faso,BFA,Western Africa,True
 Burundi,BDI,Eastern Africa,True
 Cambodia,KHM,South-Eastern Asia,True
@@ -15,20 +18,27 @@ Chad,TCD,Middle Africa,True
 China,CHN,Eastern Asia,True
 Colombia,COL,South America,True
 Congo,COG,Middle Africa,True
+Côte d'Ivoire,CIV,Western Africa,True
 Democratic Republic of the Congo,COD,Middle Africa,False
 Denmark,DNK,Northern Europe,True
+Dominican Republic,DOM,Caribbean,True
 Ecuador,ECU,South America,True
 Egypt,EGY,Northern Africa,True
 El Salvador,SLV,Central America,True
+Eswatini,SWZ,Southern Africa,True
 Ethiopia,ETH,Eastern Africa,True
 France,FRA,Western Europe,True
 Gambia,GMB,Western Africa,True
+Georgia,GEO,Western Asia,False
 Germany,DEU,Western Europe,True
 Ghana,GHA,Western Africa,False
 Guatemala,GTM,Central America,True
 Guinea,GIN,Western Africa,True
 Guinea-Bissau,GNB,Western Africa,True
+Haiti,HTI,Caribbean,True
+Honduras,HND,Central America,True
 India,IND,Central Asia,True
+Indonesia,IDN,South-Eastern Asia,True
 Iran (Islamic Republic of),IRN,Central Asia,True
 Iraq,IRQ,Western Asia,True
 Israel,ISR,Western Asia,True
@@ -47,6 +57,7 @@ Mali,MLI,Western Africa,True
 Mauritania,MRT,Western Africa,False
 Mozambique,MOZ,Eastern Africa,False
 Myanmar,MMR,South-Eastern Asia,True
+Namibia,NAM,Southern Africa,True
 Nepal,NPL,Central Asia,True
 Netherlands (Kingdom of the),NLD,Western Europe,True
 Nicaragua,NIC,Central America,True
@@ -70,6 +81,7 @@ State of Palestine,PSE,Western Asia,False
 Sudan,SDN,Northern Africa,False
 Sweden,SWE,Northern Europe,True
 Switzerland,CHE,Western Europe,True
+Syrian Arab Republic,SYR,Western Asia,False
 Tajikistan,TJK,Central Asia,False
 Thailand,THA,South-Eastern Asia,True
 Timor-Leste,TLS,South-Eastern Asia,True
@@ -82,3 +94,4 @@ United Republic of Tanzania,TZA,Eastern Africa,True
 United States of America,USA,Northern America,True
 Venezuela,VEN,South America,False
 Yemen,YEM,Western Asia,False
+Zambia,ZMB,Eastern Africa,False

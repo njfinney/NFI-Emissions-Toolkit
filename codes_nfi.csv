@@ -32,6 +32,7 @@ code,label
 392510,Water tank
 401692,Eraser / sharpener
 420292,School bag / backpack
+4401,Cooking fuel / briquettes
 440799,Timber / wood
 441520,Wooden pallet
 441819,Window
@@ -43,6 +44,7 @@ code,label
 482010,Register / receipt book
 482020,Exercise book
 482030,File / folder / divider
+4901,Books
 520812,Fabric / cloth
 540110,Thread / yarn
 560749,Rope
@@ -51,6 +53,8 @@ code,label
 621142,Apron; Clothing / PPE
 621600,Gloves
 630140,Blanket (high thermal); Blanket (medium thermal); Blanket
+630231,Bed linen
+630260,Towel
 630491,Mosquito net
 630533,Woven sack / bag
 630612,Fumigation sheet; Truck tarpaulin; Tarpaulin
@@ -88,6 +92,7 @@ code,label
 830520,Stapler / staples / clips
 831000,Sign / signpost / banner
 841370,Pump
+8415,Air conditioner
 841780,Incinerator
 841830,Freezer / refrigerator
 841981,Oven
@@ -101,6 +106,7 @@ code,label
 846729,Power tool
 847010,Calculator
 847130,IT equipment
+847989,Machines n.e.s.
 848180,Valve / tap
 850211,Generator <=75 kVA
 850212,Generator
@@ -114,6 +120,7 @@ code,label
 851660,Electric cooker
 851821,Loudspeaker / audio equipment
 851850,Megaphone
+8527,Radio
 853690,Electrical accessory (socket/switch/breaker)
 853952,LED lamp / tube
 854143,Solar panel
@@ -123,17 +130,21 @@ code,label
 871200,Bicycle
 871639,Trailer
 871680,Wheelbarrow
+8903,Boats
 901580,Weather / measuring instrument
 901720,Ruler / geometry set
 9018,Medical device / instrument
 920890,Whistle
 940169,Chair
 940320,Camp bed
+940350,Wooden bed
 940360,School desk / bench; Table; Shelf / cabinet
 940421,Mattress
 940430,Sleeping bag
+940490,Pillow / cushion
 940549,Lighting tower
 940610,Prefabricated unit
+9503,Toys
 950662,Sports equipment
 960810,Pen / marker
 960910,Pencil / crayon

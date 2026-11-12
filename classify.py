@@ -26,6 +26,9 @@ import unicodedata
 
 import pandas as pd
 
+# Material_Group_Category is constant per class in the data we have; backfilled when an extract omits it
+CATEGORY_OF_CLASS = {"CAMPING/FIELD EQUIP.": "Permanent & Temporary Infrastructure"}
+
 # ---------------------------------------------------------------- text normalisation
 
 def norm(s: str) -> str:
@@ -309,6 +312,10 @@ def main():
 
     df = pd.read_csv(args.data, encoding="utf-8-sig")
     df.columns = [c.strip().lstrip("﻿") for c in df.columns]
+    # newer extracts name the text column 'Description' and omit Material_Group_Category
+    df = df.rename(columns={"Description": "Detailed_Description"})
+    if "Material_Group_Category" not in df:
+        df["Material_Group_Category"] = df["Material_Group_Class"].map(CATEGORY_OF_CLASS)
 
     # ---- classify each unique description once
     # Material group as a last-resort prior (e.g. 'MBARARA' under Tarpaulins = a tarp delivery)
@@ -498,6 +505,13 @@ def main():
     out.loc[b, "kg_basis"] = ("Unqualified Estimate: value / median USD per kg (" + out.loc[b, "_fb_usd_kg"].round(2).astype(str)
                               + ") of the other NFI goods in " + scope_txt)
     out.loc[b, "data_score"] = DS["UNQUALIFIED"]
+    # (c) no value and no weight anywhere for the item: median kg/unit of the other goods in its group
+    miss = out.kg_per_unit.isna() & goods_scope
+    grp_kg = out[known].groupby("group").kg_per_unit.median()
+    c = miss & out["group"].isin(grp_kg.index)
+    out.loc[c, "kg_per_unit"] = out.loc[c, "group"].map(grp_kg).round(6)
+    out.loc[c, "kg_basis"] = "Unqualified Estimate: median kg/unit of the other NFI goods in group " + out.loc[c, "group"] + " (no usable value on this line)"
+    out.loc[c, "data_score"] = DS["UNQUALIFIED"]
 
     # bulk materials: a 'unit' price far below one bag means the quantity was recorded in kg
     bulk = out["item_id"].isin(BULK_KG_ITEMS) & (out["unit_price_usd"] < 1.5)
@@ -655,7 +669,7 @@ def main():
     # open factor (categories A and B); otherwise OpenCEDA spend-based. Unallocated rows stay blank
     # (no value, adjustment or unclear line), so a sum never includes them and they are not zeros.
     out[TOTAL_COL] = out["production_kgco2e"]
-    out[UNIT_COL] = (out[TOTAL_COL] / out["units_est"]).where(out["units_est"] > 0).round(6)
+    out[UNIT_COL] = (out[TOTAL_COL] / out["units_est"]).where(out["units_est"] > 0).round(9)
     out["Cradle_to_Gate_Method"] = out["production_basis"]
     src = []
     for b, rcp, code, tgt, geo, note in zip(out["production_basis"], out["recipe"], out["ceda_code"], out["ceda_target"],
@@ -741,7 +755,7 @@ def main():
     ).reset_index().merge(
         lk.drop(columns=["data_score", "ceda_fit", "kg_per_unit", "kg_basis", "comext_route"]),
         on="Detailed_Description")
-    lk2[UNIT_COL] = (lk2[TOTAL_COL] / lk2["units_est"]).where(lk2["units_est"] > 0).round(6)
+    lk2[UNIT_COL] = (lk2[TOTAL_COL] / lk2["units_est"]).where(lk2["units_est"] > 0).round(9)
     lead = ["Detailed_Description", TOTAL_COL, UNIT_COL, "Cradle_to_Gate_Method"]
     lk2 = lk2[lead + [c for c in lk2.columns if c not in lead]]
     lk2.sort_values("value_usd", ascending=False).to_csv(f"{args.prefix}_lookup.csv", index=False)
@@ -759,7 +773,7 @@ def main():
         composite_ef_kgco2e_per_kg=("composite_ef_kgco2e_per_kg", "first"),
         production_basis=("production_basis", lambda s: s.mode().iat[0]),
         confidence_score_median=("confidence_score", "median")).reset_index().sort_values("value_usd", ascending=False)
-    summ[UNIT_COL] = (summ[TOTAL_COL] / summ["units_est"]).where(summ["units_est"] > 0).round(6)
+    summ[UNIT_COL] = (summ[TOTAL_COL] / summ["units_est"]).where(summ["units_est"] > 0).round(9)
     lead = ["scope", "group", "item_id", "item_en", TOTAL_COL, UNIT_COL]
     summ = summ[lead + [c for c in summ.columns if c not in lead]]
     summ.to_csv(f"{args.prefix}_item_summary.csv", index=False)

@@ -114,6 +114,13 @@ GOLDEN = {
     "ACHAT DES MUAC ADULTS": "MED_DEVICE", "Cabbage seed": "SEED", "Fruit seedling for SRV-04 Dists": "SEEDLING",
     "DD MREs CRP 24 HR Occidental D": "FOOD_RATION", "CO- Solid Tuna": "FOOD_FISH", "CO- Biscuit": "FOOD_BAKERY",
     "Compost Soil for Saveh workshop": "COMPOST",
+    "Tent, multipurpose, 25 sq.m.": "TENT_CLASSROOM", "Office, accom. unit, with accessories T": "PREFAB",
+    "Boat,inflatable with accessories": "BOAT", "Morral": "SCHOOL_BAG", "Toldillos para moscos": "MOSQUITO_NET",
+    "bed sheets": "BED_SHEET", "Pillow": "PILLOW", "Towel 150x100 cm": "TOWEL", "camping bed": "CAMP_BED",
+    "Ac 2.5 Horses Split": "AIRCON", "crank or solar radio": "RADIO", "Carabiner": "RESCUE_GEAR",
+    "PVC water pine no.25": "PIPE", "PVC-Elbow (Ø 18)": "PIPE_FITTING", "FEMENINE SANITARY TOWEL": "SANITARY_PAD",
+    "Excercice Book": "EXERCISE_BOOK", "EU- Painting Works": "SVC_WORKS_REPAIR", "fuel for cooking": "FUEL_COOKING",
+    "Additional cost for customs clearance se": "SVC_CUSTOMS",
 }
 
 
@@ -175,7 +182,9 @@ def test_every_goods_line_has_a_weight():
     o = pd.read_csv(path("nfi_classified.csv"))
     goods = o[o.scope.isin(["GOODS", "KIT"])]
     assert goods.kg_per_unit.notna().all(), goods[goods.kg_per_unit.isna()].Detailed_Description.head().tolist()
-    assert goods.kg_basis.notna().all() and goods.total_kg_est.notna().all()
+    assert goods.kg_basis.notna().all()
+    # a total needs a quantity: the extract has lines with the quantity left blank
+    assert goods[goods.Quantity.notna()].total_kg_est.notna().all()
     # last-resort weights are labelled, so they can be found and replaced
     fallback = o[o.kg_basis.fillna("").str.startswith("Unqualified Estimate: ")]
     assert (fallback.confidence_score <= 30).all()

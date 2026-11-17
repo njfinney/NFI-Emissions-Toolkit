@@ -65,7 +65,7 @@ def build_checks(o, eur_per_kg, fx):
          | (o.production_kgco2e.notna() & ((o.production_kgco2e - chosen).abs() > 0.5))),
         ("CRADLE_TO_GATE_COLS", "integrity", "Cradle-to-gate columns do not match the chosen method",
          "Total must equal the weight- or spend-based figure for the row's method (blank only when unallocated); unit x units must equal the total.",
-         lambda: (o.Total_Cradle_to_Gate_Emissions_kgCO2e.isna() != (o.production_basis == "Unallocated"))
+         lambda: (o.Total_Cradle_to_Gate_Emissions_kgCO2e.isna() != o.production_basis.isin(["Not applicable", "No estimate available"]))
          | (o.Total_Cradle_to_Gate_Emissions_kgCO2e.notna() & ((o.Total_Cradle_to_Gate_Emissions_kgCO2e - chosen).abs() > 0.5))
          | (o.Unit_Cradle_to_Gate_Emissions_kgCO2e.notna() & ((o.Unit_Cradle_to_Gate_Emissions_kgCO2e * o.units_est
                                                               - o.Total_Cradle_to_Gate_Emissions_kgCO2e).abs() > 1))),
@@ -86,7 +86,7 @@ def build_checks(o, eur_per_kg, fx):
          "Physically unlikely for goods; check the quantity and the weight.",
          lambda: goods & usd_per_kg.notna() & ((usd_per_kg < 0.05) | (usd_per_kg > 2000))),
         ("GOODS_NO_WEIGHT", "review", "Goods or kit without a kg per unit",
-         "These fall back to spend-based factors.", lambda: goods & o.kg_per_unit.isna() & (o.emissions_approach != "Unallocated")),
+         "These fall back to spend-based factors.", lambda: goods & o.kg_per_unit.isna() & ~o.emissions_approach.isin(["Not applicable", "No estimate available"])),
         ("WEAK_MATCH", "review", "Item inferred from a fallback match or the material group",
          "The description did not match on its head noun; check the item.",
          lambda: o["match"].isin(["rule:full-fallback", "material-group-prior"])),
@@ -101,6 +101,12 @@ def build_checks(o, eur_per_kg, fx):
          "Identification is capped at 0.6.", lambda: flag(o, "GENERIC_ITEM")),
         ("UNQUALIFIED", "info", "Weight is an Unqualified Estimate",
          "No published source for this weight.", lambda: kb.str.contains("Unqualified Estimate")),
+        ("SPEND_IMPUTED", "info", "Spend imputed from the item's median unit price",
+         "Complex goods with a quantity but no recorded spend: spend-based emissions use quantity x median unit price.",
+         lambda: flag(o, "SPEND_IMPUTED")),
+        ("NO_ESTIMATE", "info", "Not applicable or no estimate available",
+         "Left blank on purpose; production_basis_note gives the justification.",
+         lambda: o.production_basis.isin(["Not applicable", "No estimate available"])),
         ("NO_SPEND_WEIGHT_BASED", "info", "Weight-based with no spend recorded on the line",
          "Emissions come from kg x composite factor; check the order against the purchase orders for double counting.",
          lambda: o.production_basis_note.fillna("").str.contains("no spend recorded")),
@@ -416,8 +422,8 @@ const D = /*__DATA__*/null;
 const K = Object.fromEntries(D.keys.map((k, i) => [k, i]));
 const R = D.rows.map((r, i) => { const o = { i }; D.keys.forEach((k, j) => o[k] = r[j]); return o; });
 const CK = Object.fromEntries(D.checks.map(c => [c.id, c]));
-const APPROACHES = ["Average Data (Research Derived)", "Average Data (COMEXT)", "Spend-based (OpenCEDA)", "Unallocated"];
-const AP_COLOR = ["--s1", "--s2", "--s3", "--s4"];
+const APPROACHES = ["Average Data (Research Derived)", "Average Data (COMEXT)", "Spend-based (OpenCEDA)", "Not applicable", "No estimate available"];
+const AP_COLOR = ["--s1", "--s2", "--s3", "--axis", "--s4"];
 const $ = s => document.querySelector(s);
 const fmtUSD = v => v == null ? "–" : "$" + (Math.abs(v) >= 1e6 ? (v / 1e6).toFixed(2) + "M" : Math.abs(v) >= 1e4 ? Math.round(v / 1e3) + "k" : Math.round(v).toLocaleString());
 const fmtN = (v, d = 1) => v == null ? "–" : Math.abs(v) >= 1000 ? Math.round(v).toLocaleString() : (+v.toFixed(d)).toLocaleString(undefined, { maximumFractionDigits: d });

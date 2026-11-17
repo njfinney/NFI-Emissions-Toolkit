@@ -19,6 +19,8 @@ QTY_NOT_INTEGER,review,Quantity is not a whole number,"Usually m2, m or kg rathe
 WIDE_COMEXT,info,Comext spread is wide (p75/p25 > 3),The median is used but the item type varies a lot within the code.,506,4265710.0,0.04364537086149091
 GENERIC_ITEM,info,"Catch-all item (tent unspecified, other kit)",Identification is capped at 0.6.,194,4288346.0,0.04387697512310755
 UNQUALIFIED,info,Weight is an Unqualified Estimate,No published source for this weight.,415,14209093.0,0.14538286324912253
+SPEND_IMPUTED,info,Spend imputed from the item's median unit price,Complex goods with a quantity but no recorded spend: spend-based emissions use quantity x median unit price.,15,0.0,0.0
+NO_ESTIMATE,info,Not applicable or no estimate available,Left blank on purpose; production_basis_note gives the justification.,110,436460.0,0.004465718149195872
 NO_SPEND_WEIGHT_BASED,info,Weight-based with no spend recorded on the line,Emissions come from kg x composite factor; check the order against the purchase orders for double counting.,69,0.0,0.0
 MATERIAL_PROXY,info,Weight-based with a labelled proxy material factor,See material_factors.csv for the proxy and its direction (over- or understates).,1698,41184431.0,0.4213858337098591
 TRADE_HUB,info,Spend-based goods bought from a re-export hub,The supplier country may not be where the goods were made.,0,0.0,0.0

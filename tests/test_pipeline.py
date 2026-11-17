@@ -171,7 +171,7 @@ def test_cradle_to_gate_columns_reconcile():
     # one number to report: the three outputs agree
     assert o[t].sum() == pytest.approx(lk[t].sum(), rel=1e-6) == pytest.approx(it[t].sum(), rel=1e-6)
     # blank (not zero) only for unallocated rows
-    assert (o[t].isna() == (o["Cradle_to_Gate_Method"] == "Unallocated")).all()
+    assert (o[t].isna() == o["Cradle_to_Gate_Method"].isin(["Not applicable", "No estimate available"])).all()
     assert (o[t].dropna() >= 0).all()
     ok = o[u].notna()
     assert ((o.loc[ok, u] * o.loc[ok, "units_est"] - o.loc[ok, t]).abs() < 1).all()
@@ -208,4 +208,17 @@ def test_lines_without_spend_get_weight_based_emissions_when_possible():
            & o.mfg_category.str[:1].isin(["A", "B"]) & (o.weight_kgco2e > 0)]
     assert len(nv) and nv.Total_Cradle_to_Gate_Emissions_kgCO2e.notna().all()
     assert nv.production_basis_note.str.contains("no spend recorded").all()
-    assert (nv.emissions_approach != "Unallocated").all()
+    assert (~nv.emissions_approach.isin(["Not applicable", "No estimate available"])).all()
+
+
+@pytest.mark.skipif(not os.path.exists(path("nfi_classified.csv")), reason="no pipeline output yet")
+def test_blank_emissions_always_carry_a_justification():
+    o = pd.read_csv(path("nfi_classified.csv"))
+    t = "Total_Cradle_to_Gate_Emissions_kgCO2e"
+    blank = o[o[t].isna()]
+    assert blank.production_basis.isin(["Not applicable", "No estimate available"]).all()
+    assert (blank.production_basis_note.fillna("").str.len() > 20).all()
+    assert (blank.emissions_approach == blank.production_basis).all()
+    assert (o[o.scope == "ADJUSTMENT"].production_basis == "Not applicable").all()
+    imputed = o[o["flags"].fillna("").str.contains("SPEND_IMPUTED")]
+    assert imputed[t].notna().all() and imputed.production_basis_note.str.startswith("spend imputed").all()

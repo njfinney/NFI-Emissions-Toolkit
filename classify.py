@@ -237,7 +237,8 @@ QTY_FACTOR = {                  # how far the recorded quantity can be trusted
 GEO_FACTOR = {"Country": 1.0, "UN subregion": 0.85, "Rest of World": 0.7}  # spend-based only
 
 APPROACHES = ("Average Data (COMEXT)", "Average Data (Research Derived)",
-              "Spend-based (OpenCEDA)", "Unallocated")
+              "Spend-based (OpenCEDA)", "Not applicable", "No estimate available")
+NO_EMISSIONS = ("Not applicable", "No estimate available")
 
 
 def band(score):
@@ -658,34 +659,68 @@ def main():
     out["weight_kgco2e"] = (out["total_kg_est"] * out["composite_ef_kgco2e_per_kg"]).round(1)
     tier = out["mfg_category"].fillna("").str[:1]
     has_w = out["weight_kgco2e"].notna() & (out["weight_kgco2e"] > 0) & (out["recipe_use"] == "production")
-    basis, note = [], []
-    for t, hw, ap, r, mn, sc in zip(tier, has_w, out["emissions_approach"], out["recipe"], out["mfg_note"], out["scope"]):
-        if ap == "Unallocated" and t in ("A", "B") and hw and sc in ("GOODS", "KIT"):
+    # median unit price of each item's lines that have a recorded value: used to impute spend where none was recorded
+    unit_val = (out["Goods_Receipt_Value_USD"] / out["Quantity"].where(out["Quantity"] > 0)).where(out["Goods_Receipt_Value_USD"] > 0)
+    item_up = unit_val.groupby(out["item_id"]).median()
+    NA_ADJUSTMENT = ("Contract adjustment (contingency, variation, retention, tax, overhead): a financial surcharge on works "
+                     "that are counted in their own lines, with no emissions of its own")
+    basis, note, imputed = [], [], []
+    for t, hw, ap, r, mn, sc, q, iid in zip(tier, has_w, out["emissions_approach"], out["recipe"], out["mfg_note"],
+                                            out["scope"], out["Quantity"], out["item_id"]):
+        goods = sc in ("GOODS", "KIT")
+        imp = None
+        if ap != "Unallocated":
+            if t in ("A", "B") and hw:
+                b, n = "Weight-based (material recipe)", "kg x composite material factor"
+            else:
+                b = "Spend-based (OpenCEDA)"
+                n = ({"C": "complex item", "D": "service or works", "X": "outside NFI scope"}.get(t)
+                     or ("no open material factor: " + str(mn) if pd.isna(r) else "no weight estimate"))
+        elif sc == "ADJUSTMENT":
+            b, n = "Not applicable", NA_ADJUSTMENT
+        elif goods and t in ("A", "B") and hw:
             # no spend recorded, but weight-based emissions (kg x composite factor) do not need spend
-            basis.append("Weight-based (material recipe)"); note.append("kg x composite material factor; no spend recorded on this line")
-        elif ap == "Unallocated":
-            basis.append("Unallocated"); note.append("no value, adjustment or unclear line")
-        elif t in ("A", "B") and hw:
-            basis.append("Weight-based (material recipe)"); note.append("kg x composite material factor")
+            b, n = "Weight-based (material recipe)", "kg x composite material factor; no spend recorded on this line"
+        elif goods and t == "C" and pd.notna(q) and q > 0 and pd.notna(item_up.get(iid)):
+            imp = float(q) * float(item_up[iid])
+            b, n = "Spend-based (OpenCEDA)", (f"spend imputed: {q:,.0f} units x ${item_up[iid]:,.2f} (median unit price of this "
+                                              f"item's other lines) = ${imp:,.0f}; complex item")
+        elif sc == "UNCLEAR":
+            b, n = "No estimate available", ("Item not identified from the description, so no sector or weight can be assigned; "
+                                             "check the purchase order")
+        elif sc in ("SERVICE", "WORKS"):
+            b, n = "No estimate available", "No spend recorded on this service or works line; the spend-based method needs a value"
+        elif pd.isna(q):
+            b, n = "No estimate available", "No quantity or spend recorded on this line"
+        elif t == "C":
+            b, n = "No estimate available", "No spend recorded and no other priced lines of this item to estimate it from"
         else:
-            basis.append("Spend-based (OpenCEDA)")
-            note.append({"C": "complex item", "D": "service or works", "X": "outside NFI scope"}.get(t)
-                        or ("no open material factor: " + str(mn) if pd.isna(r) else "no weight estimate"))
+            b, n = "No estimate available", "No spend recorded and no open material factor for this item, so neither method applies"
+        basis.append(b); note.append(n); imputed.append(imp)
     out["production_basis"], out["production_basis_note"] = basis, note
-    # lines that only the weight-based method could value are no longer unallocated: label how their weight was found
-    nospend = out["production_basis_note"].str.contains("no spend recorded") & (out["emissions_approach"] == "Unallocated")
+    imp = pd.Series(imputed, index=out.index, dtype=float)
+    m_imp = imp.notna()
+    out.loc[m_imp, "spend_kgco2e"] = (imp[m_imp] * pd.to_numeric(out.loc[m_imp, "ceda_ef_kgco2e_per_usd"])).round(1)
+    out.loc[m_imp, "flags"] = (out.loc[m_imp, "flags"].fillna("") + "|SPEND_IMPUTED").str.strip("|")
+    # emissions_approach follows the outcome: lines that were 'Unallocated' only for lack of spend are now valued, so label
+    # how their weight was found; the others say why they have no estimate
+    was_un = out["emissions_approach"] == "Unallocated"
+    calc = was_un & ~out["production_basis"].isin(NO_EMISSIONS)
     kb = out["kg_basis"].astype(str)
-    out.loc[nospend, "emissions_approach"] = [
+    out.loc[calc, "emissions_approach"] = [
         "Average Data (COMEXT)" if (b.startswith(("Comext", "price proxy")) and pd.notna(c) and str(c).strip())
-        else "Average Data (Research Derived)" for b, c in zip(kb[nospend], out.loc[nospend, "cn"])]
+        else "Average Data (Research Derived)" for b, c in zip(kb[calc], out.loc[calc, "cn"])]
+    out.loc[was_un & out["production_basis"].isin(NO_EMISSIONS), "emissions_approach"] = \
+        out.loc[was_un & out["production_basis"].isin(NO_EMISSIONS), "production_basis"]
     w_based = out["production_basis"].str.startswith("Weight")
     out["production_kgco2e"] = out["weight_kgco2e"].where(w_based, out["spend_kgco2e"])
     out["weight_vs_spend"] = (out["weight_kgco2e"] / out["spend_kgco2e"]).where(out["spend_kgco2e"] > 0).round(2)
 
     # ---- cradle-to-gate emissions: the columns to aggregate for the annual report.
     # Best available method per row: material recipe x kg where the item has a recipe, a weight and an
-    # open factor (categories A and B); otherwise OpenCEDA spend-based. Unallocated rows stay blank
-    # (no value, adjustment or unclear line), so a sum never includes them and they are not zeros.
+    # open factor (categories A and B); otherwise OpenCEDA spend-based (spend imputed from the item's median unit
+    # price for complex goods with no recorded value). Rows marked Not applicable or No estimate available stay
+    # blank, so a sum never includes them and they are not zeros; production_basis_note says why.
     out[TOTAL_COL] = out["production_kgco2e"]
     out[UNIT_COL] = (out[TOTAL_COL] / out["units_est"]).where(out["units_est"] > 0).round(9)
     out["Cradle_to_Gate_Method"] = out["production_basis"]
@@ -696,7 +731,8 @@ def main():
             src.append(f"kg x composite factor, BEIS 2025 / ADEME Base Carbone: {rcp}"
                        + (" (no spend recorded on this line)" if "no spend recorded" in str(note) else ""))
         elif b.startswith("Spend"):
-            src.append(f"Value x OpenCEDA 2025 factor, {code} {tgt}, {geo}")
+            src.append(f"Value x OpenCEDA 2025 factor, {code} {tgt}, {geo}"
+                       + (f" ({str(note).split(';')[0]})" if str(note).startswith("spend imputed") else ""))
         else:
             src.append(note)
     out["Cradle_to_Gate_Source"] = src
@@ -707,7 +743,7 @@ def main():
 
     # ---- confidence score
     def qty_state(r):
-        if r["emissions_approach"] in ("Spend-based (OpenCEDA)", "Unallocated"):
+        if r["emissions_approach"] in ("Spend-based (OpenCEDA)",) + NO_EMISSIONS:
             return "not_needed"                  # spend is the activity data
         if str(r["kg_basis"]).startswith("price proxy"):
             return "not_needed"                  # value / EUR-per-kg: quantity cancels out
@@ -728,7 +764,7 @@ def main():
         if ap == "Spend-based (OpenCEDA)":
             d = r["ceda_fit"] if pd.notna(r["ceda_fit"]) else 0.0
             d *= GEO_FACTOR.get(str(r["ceda_ef_geography"]).split(" (")[0], 0.0)
-        elif ap == "Unallocated":
+        elif ap in NO_EMISSIONS:
             d = 0.0
         else:
             d = r["data_score"] if pd.notna(r["data_score"]) else 0.0
@@ -811,8 +847,8 @@ def main():
     w = out.Goods_Receipt_Value_USD
     print("value-weighted confidence", round((out.confidence_score * w).sum() / w.sum(), 1))
     print(f"Total cradle-to-gate  {out[TOTAL_COL].sum() / 1000:,.0f} t CO2e over {out[TOTAL_COL].notna().sum()} rows "
-          f"({out[TOTAL_COL].isna().sum()} unallocated rows left blank)")
-    for b in ("Weight-based (material recipe)", "Spend-based (OpenCEDA)", "Unallocated"):
+          f"({out[TOTAL_COL].isna().sum()} rows left blank: not applicable or no estimate available)")
+    for b in ("Weight-based (material recipe)", "Spend-based (OpenCEDA)", "Not applicable", "No estimate available"):
         m = out.production_basis == b
         print(f"{b:32}", pct(m), f"{out.loc[m, 'production_kgco2e'].sum() / 1000:9,.0f} t CO2e")
 

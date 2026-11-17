@@ -35,6 +35,14 @@ dominant supplementary unit are used.
 | m, m2, m3, l | `COMEXT_CONVERTED` | median x `length_m`, `area_m2`, `volume_l`/1000 or `volume_l` parsed from the description; not applied without a size |
 | none (kg only), or a unit with no size (incl. `CEEL`) | `PRICE_PROXY` | unit price x usd_to_eur / Comext EUR per kg |
 
+Lines with no recorded spend, goods and kits only:
+- Categories A and B with a recipe and a weight: weight-based (`kg x composite`), noted "no spend recorded on this line".
+- Hygiene and dignity kits use the OpenCEDA sector *Sanitary paper product manufacturing* (322291): the closest
+  match for a mix of toilet paper, sanitary pads, soap and toothbrushes. Toilet preparations (325620) is too narrow.
+- Category C (complex) with a quantity: spend is imputed as quantity x the median unit price of the item's other lines
+  and run through the item's OpenCEDA sector (flag `SPEND_IMPUTED`; the working is in `production_basis_note`).
+- Anything else stays blank as "No estimate available" with its reason.
+
 Special cases:
 - **Tiles and drywall** (`QTY_IN_M2_ITEMS`): the quantity is recorded in m2, so the Comext kg per m2
   is the kg per unit (`COMEXT_CONVERTED`); `QTY_NOT_INTEGER` is not raised for them.
@@ -108,8 +116,10 @@ treemap and table: category -> item -> recipe component, or material -> item; co
 item kg x mass share x material factor; spend-based items show their OpenCEDA sector).
 
 ## Emissions approach (first rule that applies)
-1. **Unallocated** - scope UNCLEAR, contract adjustments (contingency, variation, retention, tax,
-   overhead), or zero / negative value.
+1. **Not applicable** - contract adjustments (contingency, variation, retention, tax, overhead): a surcharge on works
+   counted in their own lines. **No estimate available** - unidentified lines (`UNCLEAR`), services and works with no
+   spend, and goods with no spend and no way to estimate it. Both are blank in the cradle-to-gate columns (not zero),
+   and `production_basis_note` gives the justification line by line.
 2. **Spend-based (OpenCEDA)** - services and works.
 3. **Average Data (Research Derived)** - goods/kits with a kg/unit from the description, a
    humanitarian catalogue, a parametric calculation, an engineering standard, a reviewer, or an
@@ -152,7 +162,7 @@ item kg x mass share x material factor; spend-based items show their OpenCEDA se
 | | Flagged but unchanged | 0.80 |
 | | Re-estimated from value / median unit price | 0.60 |
 
-Bands: High >= 70 · Medium 40-69 · Low 1-39 · None = 0 (not yet quantified, or Unallocated).
+Bands: High >= 70 · Medium 40-69 · Low 1-39 · None = 0 (not yet quantified, not applicable, or no estimate available).
 The score measures how sure we are about this row's mapping and quantities; it does not rank
 the calculation methods against each other.
 
@@ -175,7 +185,7 @@ Every item has a `mfg_category` in `vocabulary.csv` (with a one-line `mfg_note`)
 | B. Multi-material | A few materials, no electronics | Weight-based: kg x composite of a rough bill of materials |
 | C. Complex | Electronics, batteries, engines, kits | Spend-based (OpenCEDA); BEIS electrical-item factor kept as a comparison where one fits |
 | D. Services and works | Not a physical good | Spend-based (OpenCEDA) |
-| X. Unallocated | Contract adjustments and unclear lines | None (blank) |
+| X. Unallocated | Contract adjustments and unclear lines | Not applicable / no estimate available (blank) |
 
 A and B fall back to spend-based when the row has no weight or no open material factor exists
 (ceramic tiles, paint, chemicals, sinks of unknown material); `production_basis_note` says why.
@@ -202,6 +212,12 @@ manufacturing (plastics "incl. forming"), and neither source publishes product a
 - Factor = kg CO2e per USD, **2025 purchaser price**, chosen by supplier country, then UN subregion average,
   then Rest of World (`ceda_ef_geography` says which). `spend_kgco2e = Goods_Receipt_Value_USD x factor`.
   Use it only where `emissions_approach` is Spend-based; elsewhere it is a cross-check.
+- **Trade-hub suppliers** (UAE, Belgium, Netherlands, Singapore, Malaysia, Panama): goods and kits bought from them
+  are assumed to be made mostly in Asia, so their spend factor is the Open CEDA UN-subregion average for
+  South-Eastern Asia (`HUB_SUPPLIERS`, `HUB_REGION` in `classify.py`), not the hub country's own factor.
+  `ceda_ef_geography` shows "UN subregion (South-Eastern Asia)". Services and works keep the supplier country's
+  factor. Eastern Asia and Central/South Asia averages are higher than South-Eastern Asia; change `HUB_REGION`
+  to test them.
 - Flag `SUPPLIER_IN_TRADE_HUB`: spend-based goods bought from a re-export hub (UAE, Belgium, Netherlands,
   Malaysia, Panama, Singapore). The supplier country may not be where the goods were made.
 - In CEDA's own mapping, South Asia (India, Pakistan, Nepal, Bangladesh, Sri Lanka, Iran, Afghanistan, Bhutan)

@@ -114,6 +114,14 @@ GOLDEN = {
     "ACHAT DES MUAC ADULTS": "MED_DEVICE", "Cabbage seed": "SEED", "Fruit seedling for SRV-04 Dists": "SEEDLING",
     "DD MREs CRP 24 HR Occidental D": "FOOD_RATION", "CO- Solid Tuna": "FOOD_FISH", "CO- Biscuit": "FOOD_BAKERY",
     "Compost Soil for Saveh workshop": "COMPOST",
+    "Microcubetas para HEMOCONTROL (caja)": "MED_DIAGNOSTIC", "Hemoglobinometros 3": "MED_DEVICE",
+    "Tent, multipurpose, 25 sq.m.": "TENT_CLASSROOM", "Office, accom. unit, with accessories T": "PREFAB",
+    "Boat,inflatable with accessories": "BOAT", "Morral": "SCHOOL_BAG", "Toldillos para moscos": "MOSQUITO_NET",
+    "bed sheets": "BED_SHEET", "Pillow": "PILLOW", "Towel 150x100 cm": "TOWEL", "camping bed": "CAMP_BED",
+    "Ac 2.5 Horses Split": "AIRCON", "crank or solar radio": "RADIO", "Carabiner": "RESCUE_GEAR",
+    "PVC water pine no.25": "PIPE", "PVC-Elbow (Ø 18)": "PIPE_FITTING", "FEMENINE SANITARY TOWEL": "SANITARY_PAD",
+    "Excercice Book": "EXERCISE_BOOK", "EU- Painting Works": "SVC_WORKS_REPAIR", "fuel for cooking": "FUEL_COOKING",
+    "Additional cost for customs clearance se": "SVC_CUSTOMS",
 }
 
 
@@ -163,7 +171,7 @@ def test_cradle_to_gate_columns_reconcile():
     # one number to report: the three outputs agree
     assert o[t].sum() == pytest.approx(lk[t].sum(), rel=1e-6) == pytest.approx(it[t].sum(), rel=1e-6)
     # blank (not zero) only for unallocated rows
-    assert (o[t].isna() == (o["Cradle_to_Gate_Method"] == "Unallocated")).all()
+    assert (o[t].isna() == o["Cradle_to_Gate_Method"].isin(["Not applicable", "No estimate available"])).all()
     assert (o[t].dropna() >= 0).all()
     ok = o[u].notna()
     assert ((o.loc[ok, u] * o.loc[ok, "units_est"] - o.loc[ok, t]).abs() < 1).all()
@@ -175,7 +183,42 @@ def test_every_goods_line_has_a_weight():
     o = pd.read_csv(path("nfi_classified.csv"))
     goods = o[o.scope.isin(["GOODS", "KIT"])]
     assert goods.kg_per_unit.notna().all(), goods[goods.kg_per_unit.isna()].Detailed_Description.head().tolist()
-    assert goods.kg_basis.notna().all() and goods.total_kg_est.notna().all()
+    assert goods.kg_basis.notna().all()
+    # a total needs a quantity: the extract has lines with the quantity left blank
+    assert goods[goods.Quantity.notna()].total_kg_est.notna().all()
     # last-resort weights are labelled, so they can be found and replaced
     fallback = o[o.kg_basis.fillna("").str.startswith("Unqualified Estimate: ")]
     assert (fallback.confidence_score <= 30).all()
+
+
+@pytest.mark.skipif(not os.path.exists(path("nfi_classified.csv")), reason="no pipeline output yet")
+def test_hub_supplied_goods_use_the_regional_factor():
+    o = pd.read_csv(path("nfi_classified.csv"))
+    hubs = {"United Arab Emirates", "Belgium", "Netherlands (Kingdom of the)", "Singapore", "Malaysia", "Panama"}
+    h = o[o.scope.isin(["GOODS", "KIT"]) & o.Supplier_Country_Name.isin(hubs) & o.ceda_ef_kgco2e_per_usd.notna()]
+    assert len(h) and (h.ceda_ef_geography == "UN subregion (South-Eastern Asia)").all()
+    s = o[o.scope.isin(["SERVICE", "WORKS"]) & o.Supplier_Country_Name.isin(hubs) & o.ceda_ef_kgco2e_per_usd.notna()]
+    assert not s.ceda_ef_geography.str.contains("South-Eastern").any()
+
+
+@pytest.mark.skipif(not os.path.exists(path("nfi_classified.csv")), reason="no pipeline output yet")
+def test_lines_without_spend_get_weight_based_emissions_when_possible():
+    o = pd.read_csv(path("nfi_classified.csv"))
+    nv = o[o.scope.isin(["GOODS", "KIT"]) & ~(o.Goods_Receipt_Value_USD > 0) & o.Quantity.notna()
+           & o.mfg_category.str[:1].isin(["A", "B"]) & (o.weight_kgco2e > 0)]
+    assert len(nv) and nv.Total_Cradle_to_Gate_Emissions_kgCO2e.notna().all()
+    assert nv.production_basis_note.str.contains("no spend recorded").all()
+    assert (~nv.emissions_approach.isin(["Not applicable", "No estimate available"])).all()
+
+
+@pytest.mark.skipif(not os.path.exists(path("nfi_classified.csv")), reason="no pipeline output yet")
+def test_blank_emissions_always_carry_a_justification():
+    o = pd.read_csv(path("nfi_classified.csv"))
+    t = "Total_Cradle_to_Gate_Emissions_kgCO2e"
+    blank = o[o[t].isna()]
+    assert blank.production_basis.isin(["Not applicable", "No estimate available"]).all()
+    assert (blank.production_basis_note.fillna("").str.len() > 20).all()
+    assert (blank.emissions_approach == blank.production_basis).all()
+    assert (o[o.scope == "ADJUSTMENT"].production_basis == "Not applicable").all()
+    imputed = o[o["flags"].fillna("").str.contains("SPEND_IMPUTED")]
+    assert imputed[t].notna().all() and imputed.production_basis_note.str.startswith("spend imputed").all()

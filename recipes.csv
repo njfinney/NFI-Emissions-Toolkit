@@ -186,3 +186,12 @@ SANITARY_PAD,primary,paper,0.5,production,"Unqualified Estimate: pulp ~50%, nonw
 SANITARY_PAD,secondary,pp,0.3,production,"Unqualified Estimate: pulp ~50%, nonwoven ~30%, film ~20%"
 SANITARY_PAD,tertiary,ldpe,0.2,production,"Unqualified Estimate: pulp ~50%, nonwoven ~30%, film ~20%"
 FIRE_EXT,primary,steel,1,production,Single material
+BED_SHEET,primary,cotton_textile,1.0,production,Unqualified Estimate: cotton bed linen
+PILLOW,primary,polyester_textile,1.0,production,Unqualified Estimate: polyester fibre fill and cover
+TOWEL,primary,cotton_textile,1.0,production,Unqualified Estimate: cotton towel
+HAMMOCK,primary,nylon,1.0,production,Unqualified Estimate: nylon rope / fabric
+BED,primary,wood,0.85,production,"Unqualified Estimate: wood ~85%, steel fittings ~15%"
+BED,secondary,steel,0.15,production,"Unqualified Estimate: wood ~85%, steel fittings ~15%"
+BOOKS,primary,paper,1.0,production,Single material
+TOY,primary,plastic_avg,1.0,production,Unqualified Estimate: plastic toys
+RADIO,primary,electrical_small,1.0,comparison,Unqualified Estimate: BEIS small electrical items as comparison

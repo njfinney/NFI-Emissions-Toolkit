@@ -659,8 +659,11 @@ def main():
     tier = out["mfg_category"].fillna("").str[:1]
     has_w = out["weight_kgco2e"].notna() & (out["weight_kgco2e"] > 0) & (out["recipe_use"] == "production")
     basis, note = [], []
-    for t, hw, ap, r, mn in zip(tier, has_w, out["emissions_approach"], out["recipe"], out["mfg_note"]):
-        if ap == "Unallocated":
+    for t, hw, ap, r, mn, sc in zip(tier, has_w, out["emissions_approach"], out["recipe"], out["mfg_note"], out["scope"]):
+        if ap == "Unallocated" and t in ("A", "B") and hw and sc in ("GOODS", "KIT"):
+            # no spend recorded, but weight-based emissions (kg x composite factor) do not need spend
+            basis.append("Weight-based (material recipe)"); note.append("kg x composite material factor; no spend recorded on this line")
+        elif ap == "Unallocated":
             basis.append("Unallocated"); note.append("no value, adjustment or unclear line")
         elif t in ("A", "B") and hw:
             basis.append("Weight-based (material recipe)"); note.append("kg x composite material factor")
@@ -669,6 +672,12 @@ def main():
             note.append({"C": "complex item", "D": "service or works", "X": "outside NFI scope"}.get(t)
                         or ("no open material factor: " + str(mn) if pd.isna(r) else "no weight estimate"))
     out["production_basis"], out["production_basis_note"] = basis, note
+    # lines that only the weight-based method could value are no longer unallocated: label how their weight was found
+    nospend = out["production_basis_note"].str.contains("no spend recorded") & (out["emissions_approach"] == "Unallocated")
+    kb = out["kg_basis"].astype(str)
+    out.loc[nospend, "emissions_approach"] = [
+        "Average Data (COMEXT)" if (b.startswith(("Comext", "price proxy")) and pd.notna(c) and str(c).strip())
+        else "Average Data (Research Derived)" for b, c in zip(kb[nospend], out.loc[nospend, "cn"])]
     w_based = out["production_basis"].str.startswith("Weight")
     out["production_kgco2e"] = out["weight_kgco2e"].where(w_based, out["spend_kgco2e"])
     out["weight_vs_spend"] = (out["weight_kgco2e"] / out["spend_kgco2e"]).where(out["spend_kgco2e"] > 0).round(2)
@@ -684,7 +693,8 @@ def main():
     for b, rcp, code, tgt, geo, note in zip(out["production_basis"], out["recipe"], out["ceda_code"], out["ceda_target"],
                                             out["ceda_ef_geography"], out["production_basis_note"]):
         if b.startswith("Weight"):
-            src.append(f"kg x composite factor, BEIS 2025 / ADEME Base Carbone: {rcp}")
+            src.append(f"kg x composite factor, BEIS 2025 / ADEME Base Carbone: {rcp}"
+                       + (" (no spend recorded on this line)" if "no spend recorded" in str(note) else ""))
         elif b.startswith("Spend"):
             src.append(f"Value x OpenCEDA 2025 factor, {code} {tgt}, {geo}")
         else:

@@ -199,3 +199,13 @@ def test_hub_supplied_goods_use_the_regional_factor():
     assert len(h) and (h.ceda_ef_geography == "UN subregion (South-Eastern Asia)").all()
     s = o[o.scope.isin(["SERVICE", "WORKS"]) & o.Supplier_Country_Name.isin(hubs) & o.ceda_ef_kgco2e_per_usd.notna()]
     assert not s.ceda_ef_geography.str.contains("South-Eastern").any()
+
+
+@pytest.mark.skipif(not os.path.exists(path("nfi_classified.csv")), reason="no pipeline output yet")
+def test_lines_without_spend_get_weight_based_emissions_when_possible():
+    o = pd.read_csv(path("nfi_classified.csv"))
+    nv = o[o.scope.isin(["GOODS", "KIT"]) & ~(o.Goods_Receipt_Value_USD > 0) & o.Quantity.notna()
+           & o.mfg_category.str[:1].isin(["A", "B"]) & (o.weight_kgco2e > 0)]
+    assert len(nv) and nv.Total_Cradle_to_Gate_Emissions_kgCO2e.notna().all()
+    assert nv.production_basis_note.str.contains("no spend recorded").all()
+    assert (nv.emissions_approach != "Unallocated").all()

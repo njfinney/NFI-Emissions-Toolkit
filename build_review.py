@@ -118,6 +118,88 @@ def build_checks(o, eur_per_kg, fx):
     ]
 
 
+def build_flow(o, meta, n_overrides, n_recipe_lines):
+    """Counts, spend and emissions for the process diagram: scope -> production approach -> factor / reason,
+    plus the ladder of weight sources for goods and kits."""
+    V, T = "Goods_Receipt_Value_USD", "Total_Cradle_to_Gate_Emissions_kgCO2e"
+    HUBS = {"United Arab Emirates", "Belgium", "Netherlands (Kingdom of the)", "Singapore", "Malaysia", "Panama"}
+    grp = o.scope.map({"GOODS": "Goods and kits", "KIT": "Goods and kits", "SERVICE": "Services and works",
+                       "WORKS": "Services and works", "ADJUSTMENT": "Contract adjustments", "UNCLEAR": "Unidentified lines"})
+    note = o.production_basis_note.fillna("")
+    geo = o.ceda_ef_geography.fillna("")
+    goods = o.scope.isin(["GOODS", "KIT"])
+    det = []
+    for b, n, g, sc, cn in zip(o.production_basis, note, geo, o.scope, o.Supplier_Country_Name):
+        if b.startswith("Weight"):
+            det.append("Recipe x kg, no spend recorded" if "no spend recorded" in n else "Recipe x kg, spend recorded")
+        elif b.startswith("Spend"):
+            if n.startswith("spend imputed"):
+                det.append("Spend imputed (median price)")
+            elif sc in ("GOODS", "KIT") and cn in HUBS and g == "UN subregion (South-Eastern Asia)":
+                det.append("Hub supplier: SE Asia average")
+            elif g.startswith("Country"):
+                det.append("Supplier-country factor")
+            elif g.startswith("UN subregion"):
+                det.append("Regional average")
+            else:
+                det.append("Rest of World average")
+        elif b == "Not applicable":
+            det.append("Contract adjustment")
+        elif sc == "UNCLEAR":
+            det.append("Item not identified")
+        elif sc in ("SERVICE", "WORKS"):
+            det.append("No spend recorded")
+        else:
+            det.append("No spend and no factor")
+    d = pd.DataFrame(dict(a=grp, b=o.production_basis, c=det, lines=1, usd=o[V].fillna(0), co2=o[T].fillna(0) / 1000))
+    def agg(cols):
+        g = d.groupby(cols, sort=False)[["lines", "usd", "co2"]].sum().reset_index()
+        return g
+    order_a = ["Goods and kits", "Services and works", "Contract adjustments", "Unidentified lines"]
+    order_b = ["Weight-based (material recipe)", "Spend-based (OpenCEDA)", "Not applicable", "No estimate available"]
+    order_c = ["Recipe x kg, spend recorded", "Recipe x kg, no spend recorded", "Supplier-country factor",
+               "Regional average", "Hub supplier: SE Asia average", "Rest of World average",
+               "Spend imputed (median price)", "Contract adjustment", "Item not identified", "No spend recorded",
+               "No spend and no factor"]
+    links = []
+    for _, r in agg(["a", "b"]).iterrows():
+        links.append(dict(s=r.a, t=r.b, lines=int(r.lines), usd=float(r.usd), co2=float(r.co2)))
+    for _, r in agg(["b", "c"]).iterrows():
+        links.append(dict(s=r.b, t=r.c, lines=int(r.lines), usd=float(r.usd), co2=float(r.co2)))
+    nodes = [dict(id=x, col=0) for x in order_a if x in set(d.a)] + [dict(id=x, col=1) for x in order_b if x in set(d.b)] \
+        + [dict(id=x, col=2) for x in order_c if x in set(d.c)]
+    # how goods and kits got their weight
+    def wsrc(b):
+        b = str(b)
+        if b.startswith("price proxy"):
+            return "Comext price per kg (spend / EUR per kg)"
+        if b.startswith("Comext"):
+            return "Comext weight per piece"
+        if b.startswith("Unqualified Estimate: value") or b.startswith("Unqualified Estimate: median"):
+            return "Last-resort estimate (group or item median)"
+        if b.startswith("Unqualified Estimate"):
+            return "Default weight, no published source"
+        if "stated" in b or "weight / pack" in b:
+            return "Weight stated in the description"
+        if b.startswith("Parametric"):
+            return "Calculated from size and material"
+        if b.startswith("quantity") or "quantity is in kg" in b:
+            return "Quantity already in kg"
+        return "Catalogue, engineering standard or reviewer"
+    gk = o[goods].copy()
+    gk["w"] = gk.kg_basis.map(wsrc)
+    wt = gk.groupby("w").agg(lines=("scope", "size"), usd=(V, "sum"), t=("total_kg_est", lambda x: x.sum() / 1000)).reset_index()
+    wt = wt.sort_values("usd", ascending=False)
+    sp = o[o.production_basis.str.startswith("Spend")]
+    stats = dict(lines=int(len(o)), usd=float(o[V].sum()), descriptions=int(o.Detailed_Description.nunique()),
+                 countries=int(o.Supplier_Country_Name.nunique()), items=int(o[o.item_id != "UNMATCHED"].item_id.nunique()),
+                 unmatched=int((o.item_id == "UNMATCHED").sum()), overrides=int(n_overrides), recipe_lines=int(n_recipe_lines),
+                 goods_lines=int(goods.sum()), mass_t=float(o.total_kg_est.sum() / 1000), co2_t=float(o[T].sum() / 1000),
+                 estimated=int(o[T].notna().sum()), estimated_usd=float(o[o[T].notna()][V].sum()))
+    return dict(nodes=nodes, links=links, weights=[dict(label=r.w, lines=int(r.lines), usd=float(r.usd), t=float(r.t)) for r in wt.itertuples()],
+                stats=stats)
+
+
 def build_tree(o, recipes_path="recipes.csv", materials_path="material_factors.csv"):
     """Leaves for the emissions breakdown: one per (item, material component) for weight-based
     rows, one per item for spend-based rows. kg CO2e of a component = item kg x share x factor."""
@@ -200,7 +282,11 @@ def main():
     meta = dict(generated=dt.datetime.now().strftime("%d %b %Y %H:%M"), comext_period=args.comext_period,
                 usd_to_eur=args.usd_to_eur, rows=len(o), source=f"{args.prefix}_classified.csv")
     tree = build_tree(o)
-    data = json.dumps(dict(keys=keys + ["checks"], rows=rows, checks=checks, meta=meta, tree=tree),
+    import os as _os
+    n_ov = sum(1 for _ in open("overrides.csv", encoding="utf-8-sig")) - 1 if _os.path.exists("overrides.csv") else 0
+    n_rc = sum(1 for _ in open("recipes.csv", encoding="utf-8")) - 1 if _os.path.exists("recipes.csv") else 0
+    flow = build_flow(o, meta, n_ov, n_rc)
+    data = json.dumps(dict(keys=keys + ["checks"], rows=rows, checks=checks, meta=meta, tree=tree, flow=flow),
                       ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
     html = TEMPLATE.replace("/*__DATA__*/null", data)
     out = args.out or f"{args.prefix}_review.html"
@@ -323,6 +409,20 @@ tr.sel { background: var(--accent-wash) }
 .detail h3 { font-size: 16px; margin: 0 0 10px; grid-column: 1 / -1 }
 .mono { font-family: var(--mono); font-size: 12px }
 .empty { color: var(--muted); padding: 16px }
+.diagram { padding: 8px; background: var(--surface) }
+.diagram figure { margin: 0; min-width: 880px }
+.diagram svg { display: block; width: 100%; height: auto; color: var(--muted) }
+.fb { fill: var(--raise); stroke: var(--line) }
+.fb.main { stroke: var(--axis); stroke-width: 1.5 }
+.fb.side { fill: var(--bg) }
+svg text.ft { fill: var(--ink); font: 700 13px var(--font) }
+svg text.fs { fill: var(--ink-2); font: 11.5px var(--font) }
+svg text.fn { fill: var(--ink); font: 700 12px var(--font) }
+svg text.fa { fill: var(--muted); font: 11px var(--font) }
+svg text.sk { fill: var(--ink); font: 600 11.5px var(--font); paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round }
+svg text.sk2 { fill: var(--ink-2); font: 11px var(--font); paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round }
+svg text.sh { fill: var(--muted); font: 600 11px var(--font); text-transform: uppercase; letter-spacing: .06em }
+figure figcaption { color: var(--ink-2); font-size: 12.5px; padding: 6px 8px 2px }
 .em-head { display: flex; flex-wrap: wrap; gap: 12px 24px; justify-content: space-between; align-items: start }
 .em-head > div { min-width: 0; max-width: 680px }
 .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; flex-shrink: 0 }
@@ -353,6 +453,7 @@ tr.sel { background: var(--accent-wash) }
     <a href="#rows" data-tab="rows">Rows</a>
     <a href="#items" data-tab="items">Items</a>
     <a href="#emissions" data-tab="emissions">Emissions</a>
+    <a href="#process" data-tab="process">Process</a>
   </nav>
 </div></header>
 
@@ -408,6 +509,22 @@ tr.sel { background: var(--accent-wash) }
   <div class="scroll" style="margin-top:16px"><table id="t-em"><thead></thead><tbody></tbody></table></div>
 </section>
 
+<section id="tab-process" hidden>
+  <div class="panel"><h2>How the data flows</h2>
+  <p class="sub">Each purchase line is classified, weighed if it is a good, and given a cradle-to-gate emissions estimate by one of two methods. Figures are from this run.</p>
+  <div class="scroll diagram"><figure id="fig-pipeline"></figure></div></div>
+  <div class="panel"><div class="em-head"><div><h2>Where each line ends up</h2>
+  <p class="sub">Every purchase line follows one path from its type, through the method used, to the factor or reason behind it. Band width is the share of all lines, of spend, or of emissions.</p></div>
+  <div class="seg" role="group" aria-label="Measure">
+    <button type="button" id="fl-lines" aria-pressed="true">Lines</button>
+    <button type="button" id="fl-usd" aria-pressed="false">Spend</button>
+    <button type="button" id="fl-co2" aria-pressed="false">Emissions</button></div></div>
+  <div class="scroll diagram"><figure id="fig-sankey"></figure></div></div>
+  <div class="panel"><h2>How goods and kits got their weight</h2>
+  <p class="sub">Share of goods and kit spend by the source of the kg per unit, best source first in the ladder, with the rest as the last resort.</p>
+  <div id="ch-weights"></div><div class="legend" id="lg-weights"></div></div>
+</section>
+
 <section id="tab-items" hidden>
   <div class="panel"><h2>Consistency within items</h2>
   <p class="sub">One row per item. A wide range of price per kg inside one item means some rows have the wrong quantity unit, the wrong weight, or belong to another item. Select an item to see its rows.</p>
@@ -458,6 +575,8 @@ $("#kpis").innerHTML = [
   ["Integrity checks", integBad.length ? `${integBad.length} failing` : "All pass",
     `${integ.length} rules · <span class="pill ${integBad.length ? "integrity" : "pass"}">${integBad.length ? "Fix first" : "Pass"}</span>`],
   ["Rows to review", reviewRows.size.toLocaleString(), `${review.length} review checks`],
+  ["Lines with an emissions estimate", `${R.filter(r => r.p_co2 != null).length.toLocaleString()} of ${R.length.toLocaleString()}`,
+    `${pct(R.filter(r => r.p_co2 != null).length / R.length)} of lines · ${pct(R.filter(r => r.p_co2 != null).reduce((a, r) => a + (r.value || 0), 0) / totalV)} of spend`],
 ].map(([l, v, n]) => `<div class="kpi"><span class="l">${l}</span><span class="v">${v}</span><span class="n">${n}</span></div>`).join("");
 
 // ---------------------------------------------------------------- tooltip
@@ -806,6 +925,91 @@ let emT; addEventListener("resize", () => { clearTimeout(emT); emT = setTimeout(
 $("#em-by-item").addEventListener("click", () => { EM = { by: "item", path: [] }; $("#em-by-item").setAttribute("aria-pressed", "true"); $("#em-by-mat").setAttribute("aria-pressed", "false"); renderEmissions(); });
 $("#em-by-mat").addEventListener("click", () => { EM = { by: "mat", path: [] }; $("#em-by-mat").setAttribute("aria-pressed", "true"); $("#em-by-item").setAttribute("aria-pressed", "false"); renderEmissions(); });
 
+// ---------------------------------------------------------------- process diagram
+const FL = D.flow, FS = FL.stats;
+const NF = n => Math.round(n).toLocaleString();
+const FCOL = { "Weight-based (material recipe)": "--s1", "Spend-based (OpenCEDA)": "--s3", "Not applicable": "--axis", "No estimate available": "--s4" };
+function renderPipeline() {
+  const W = 1100, H = 500, bw = 176, bh = 160, xs = [18, 240, 462, 684, 906], y0 = 36;
+  const L = FL.links, tot = FS.lines;
+  const byB = {}; L.filter(l => l.s in FCOL).forEach(l => { byB[l.s] = (byB[l.s] || 0) + l.lines; });
+  const byBu = {}; L.filter(l => l.s in FCOL).forEach(l => { byBu[l.s] = (byBu[l.s] || 0) + l.usd; });
+  const goodsN = FS.goods_lines;
+  const box = (x, y, w, h, title, lines, cls) => `<g><rect class="fb ${cls || ""}" x="${x}" y="${y}" width="${w}" height="${h}" rx="6"></rect>
+    <text class="ft" x="${x + 10}" y="${y + 21}">${esc(title)}</text>${lines.map((t, i) => `<text class="${t[0] === "*" ? "fn" : "fs"}" x="${x + 10}" y="${y + 42 + i * 17}">${esc(t.replace(/^\*/, ""))}</text>`).join("")}</g>`;
+  const arrow = (x1, y1, x2, y2, label) => `<g><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="currentColor" stroke-width="1.5" marker-end="url(#ah)"></line>
+    ${label ? `<text class="fa" x="${(x1 + x2) / 2}" y="${y1 - 7}" text-anchor="middle">${esc(label)}</text>` : ""}</g>`;
+  const main = [
+    ["NFI_Categorisations.csv", [`*${NF(tot)} purchase lines`, `$${(FS.usd / 1e6).toFixed(1)}M goods receipt value`, `${NF(FS.descriptions)} unique descriptions`, `${FS.countries} supplier countries`, "text in English, French,", "Spanish, Portuguese"]],
+    ["1  Classify", ["Description to item", `*${pct(1 - FS.unmatched / tot)} of lines matched`, `${FS.items} items in use, ${NF(FS.unmatched)} unmatched`, `${FS.overrides} reviewed overrides`, "Scope: goods and kits,", "works, services, adjustments"]],
+    ["2  Weigh", ["Goods and kits only", `*${NF(goodsN)} lines get a kg per unit`, "text, catalogue, size, then", "Comext per piece or price", "per kg, then last resort", `${NF(FS.mass_t)} t in total`]],
+    ["3  Estimate emissions", ["Weight x recipe factor, or", "spend x OpenCEDA factor", `*${NF(FS.estimated)} of ${NF(tot)} lines valued`, "hub rule, imputed spend,", "not applicable, no estimate", `${NF(FS.co2_t)} t CO2e in total`]],
+    ["Outputs", ["nfi_classified.csv (line)", "nfi_lookup.csv (description)", "nfi_item_summary.csv (item)", "this review page", "*Total and unit cradle-", "*to-gate emissions"]]];
+  const side = [null,
+    ["Rules and reviews", ["vocabulary.csv: patterns", "overrides.csv: line fixes", "country_iso3.csv"]],
+    ["Weight sources", [`Comext ${esc(D.meta.comext_period)}: kg per`, "piece, EUR per kg by CN8", "IFRC/UNHCR catalogue, sizes"]],
+    ["Emission factors", [`${FS.recipe_lines} recipe lines: BEIS 2025`, "and ADEME material factors", "OpenCEDA 2025: country,", "region, rest of world"]], null];
+  const sideH = [0, 92, 92, 108, 0];
+  let g = `<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><polygon points="0,0 10,5 0,10" fill="currentColor"></polygon></marker></defs>`;
+  main.forEach((m, i) => { g += box(xs[i], y0, bw, bh, m[0], m[1], "main"); });
+  ["text", "item, scope, CN", "kg per unit, total kg", "kg CO2e per line"].forEach((lab, i) => { g += arrow(xs[i] + bw + 2, y0 + bh / 2, xs[i + 1] - 4, y0 + bh / 2, ""); g += `<text class="fa" x="${xs[i] + bw + (xs[i + 1] - xs[i] - bw) / 2}" y="${y0 + bh / 2 - 8}" text-anchor="middle">${i === 0 ? "" : ""}</text>`; });
+  side.forEach((sd, i) => { if (!sd) return; const y = y0 + bh + 38;
+    g += box(xs[i], y, bw, sideH[i], sd[0], sd[1], "side"); g += arrow(xs[i] + bw / 2, y - 2, xs[i] + bw / 2, y0 + bh + 3, ""); });
+  // ratio strips under the stages
+  const stripY = 372, sx = 18, sw = W - 36;
+  const strip = (y, title, vals, fmt) => { let x = sx; const t = Object.values(vals).reduce((a, b) => a + b, 0) || 1;
+    let s = `<text class="sh" x="${sx}" y="${y - 8}">${title}</text>`;
+    Object.entries(vals).forEach(([k, v]) => { const w = Math.max(v / t * sw, 1.5); s += `<rect x="${x}" y="${y}" width="${w}" height="22" fill="var(${FCOL[k]})"><title>${esc(k)}: ${fmt(v)}</title></rect>`;
+      if (w > 90) s += `<text class="fn" x="${x + 8}" y="${y + 15}" style="fill:var(--bg)">${esc(fmt(v))}</text>`; x += w; });
+    return s; };
+  g += strip(stripY, "Share of lines by estimation method", byB, v => `${pct(v / tot)} · ${NF(v)}`);
+  g += strip(stripY + 56, "Share of spend by estimation method", byBu, v => `${pct(v / FS.usd)} · $${(v / 1e6).toFixed(1)}M`);
+  g += Object.keys(FCOL).map((k, i) => `<rect x="${sx + i * 250}" y="${stripY + 100}" width="11" height="11" rx="2" fill="var(${FCOL[k]})"></rect><text class="fs" x="${sx + 17 + i * 250}" y="${stripY + 110}">${esc(k)}</text>`).join("");
+  $("#fig-pipeline").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Pipeline: purchase lines are classified, goods are weighed, then emissions are estimated by recipe or spend, producing the line, description and item outputs">${g}</svg>
+    <figcaption>Purchase lines pass left to right through three steps. The bars show what share of lines and of spend ends up under each estimation method.</figcaption>`;
+}
+let FL_M = "lines";
+function renderSankey() {
+  const m = FL_M, fmt = { lines: v => NF(v) + " lines", usd: v => "$" + (v >= 1e6 ? (v / 1e6).toFixed(1) + "M" : NF(v / 1e3) + "k"), co2: v => NF(v) + " t" }[m];
+  const key = { lines: "lines", usd: "usd", co2: "co2" }[m];
+  const W = 1200, padT = 22, gap = 9, nw = 14, minH = 16, xs = [190, 500, 760];
+  const nodes = FL.nodes.map(n => Object.assign({}, n)), by = Object.fromEntries(nodes.map(n => [n.id, n]));
+  const links = FL.links.filter(l => l[key] > 0 || m !== "co2").map(l => Object.assign({}, l));
+  nodes.forEach(n => { n.out = links.filter(l => l.s === n.id).reduce((a, l) => a + l[key], 0); n.inn = links.filter(l => l.t === n.id).reduce((a, l) => a + l[key], 0); n.v = Math.max(n.out, n.inn); });
+  const total = Math.max(...[0, 1, 2].map(c => nodes.filter(n => n.col === c).reduce((a, n) => a + n.v, 0))) || 1;
+  const avail = 330, scale = avail / total;
+  let H = 0;
+  [0, 1, 2].forEach(c => { let y = padT; nodes.filter(n => n.col === c && n.v > 0).forEach(n => { n.h = Math.max(n.v * scale, minH); n.y = y; n.x = xs[c]; n.oo = 0; n.io = 0; y += n.h + gap; }); H = Math.max(H, y); });
+  H += 8;
+  let svg = ["Type of line", "Method", "Factor or reason"].map((t, c) => `<text class="sh" x="${xs[c] + (c === 0 ? nw : 0)}" y="12" ${c === 0 ? "" : ""}>${t}</text>`).join("");
+  links.sort((a, b) => by[a.s].y - by[b.s].y || by[a.t].y - by[b.t].y).forEach(l => {
+    const a = by[l.s], b = by[l.t]; if (!a.h || !b.h) return;
+    const th = Math.max(l[key] * scale, 1.5), y1 = a.y + a.oo + th / 2, y2 = b.y + b.io + th / 2; a.oo += th; b.io += th;
+    const x1 = a.x + nw, x2 = b.x, xm = (x1 + x2) / 2, col = FCOL[a.col === 1 ? a.id : b.col === 1 ? b.id : ""] || "--axis";
+    svg += `<path class="lk" d="M${x1},${y1} C${xm},${y1} ${xm},${y2} ${x2},${y2}" fill="none" stroke="var(${col})" stroke-opacity=".38" stroke-width="${th}" data-s="${esc(l.s)}" data-t="${esc(l.t)}"></path>`; });
+  nodes.filter(n => n.h).forEach(n => {
+    const col = n.col === 1 ? FCOL[n.id] : "--ink-2", share = n.v / total;
+    const lab = n.col === 0 ? `<text class="sk" x="${n.x - 8}" y="${n.y + n.h / 2 - 1}" text-anchor="end">${esc(n.id)}</text><text class="sk2" x="${n.x - 8}" y="${n.y + n.h / 2 + 12}" text-anchor="end">${fmt(n.v)} · ${pct(share)}</text>`
+      : n.col === 2 ? `<text class="sk" x="${n.x + nw + 7}" y="${n.y + n.h / 2 + 4}">${esc(n.id)} <tspan class="sk2" style="font-weight:400">${fmt(n.v)} · ${pct(share)}</tspan></text>`
+      : `<text class="sk" x="${n.x + nw + 7}" y="${n.y + n.h / 2 - 1}">${esc(n.id)}</text><text class="sk2" x="${n.x + nw + 7}" y="${n.y + n.h / 2 + 12}">${fmt(n.v)} · ${pct(share)}</text>`;
+    svg += `<g class="nd" data-id="${esc(n.id)}"><rect x="${n.x}" y="${n.y}" width="${nw}" height="${n.h}" rx="2" fill="var(${col})"></rect>${lab}</g>`; });
+  const cap = { lines: "number of purchase lines", usd: "goods receipt value", co2: "cradle-to-gate emissions (blank lines carry none)" }[m];
+  $("#fig-sankey").innerHTML = `<svg viewBox="0 0 ${W} ${Math.max(H, 120)}" role="img" aria-label="Flow of purchase lines from type of line, to estimation method, to factor or reason, sized by ${cap}">${svg}</svg>
+    <figcaption>Band width shows the ${cap}. Very small bands are drawn at a minimum height so their labels stay readable.</figcaption>`;
+  $("#fig-sankey").querySelectorAll(".nd").forEach(g => { const n = by[g.dataset.id];
+    g.addEventListener("mousemove", ev => showTip(ev, `<div class="t">${esc(n.id)}</div><div class="r">${NF(n.inn || n.out) && ""}${NF(links.filter(l => l[n.col === 0 ? "s" : "t"] === n.id).reduce((a, l) => a + l.lines, 0))} lines · $${(FL.links.filter(l => l[n.col === 0 ? "s" : "t"] === n.id).reduce((a, l) => a + l.usd, 0) / 1e6).toFixed(2)}M · ${NF(FL.links.filter(l => l[n.col === 0 ? "s" : "t"] === n.id).reduce((a, l) => a + l.co2, 0))} t CO2e</div>`));
+    g.addEventListener("mouseleave", hideTip); });
+}
+function renderWeights() {
+  const rows = FL.weights, tot = rows.reduce((a, r) => a + r.usd, 0) || 1, W = 1000;
+  const cols = ["--s1", "--s2", "--s3", "--s4", "--axis", "--ink-2", "--accent", "--crit"]; let x = 0, s = `<svg viewBox="0 0 ${W} 36" width="100%" role="img" aria-label="Share of goods and kit spend by source of the weight per unit">`;
+  rows.forEach((r, i) => { const w = Math.max(r.usd / tot * W, 1.5); s += `<rect x="${x}" y="4" width="${Math.max(w - 2, 1)}" height="26" rx="3" fill="var(${cols[i % cols.length]})"><title>${esc(r.label)}: ${pct(r.usd / tot)}</title></rect>`; x += w; });
+  $("#ch-weights").innerHTML = s + "</svg>";
+  $("#lg-weights").innerHTML = rows.map((r, i) => `<span><i style="background:var(${cols[i % cols.length]})"></i>${esc(r.label)} <b>${pct(r.usd / tot)}</b> · ${NF(r.lines)} lines · ${NF(r.t)} t</span>`).join("");
+}
+function renderProcess() { renderPipeline(); renderSankey(); renderWeights(); }
+["lines", "usd", "co2"].forEach(k => $("#fl-" + k).addEventListener("click", () => { FL_M = k; ["lines", "usd", "co2"].forEach(j => $("#fl-" + j).setAttribute("aria-pressed", String(j === k))); renderSankey(); }));
+
 // ---------------------------------------------------------------- tabs + controls
 function go(tab) { document.querySelectorAll("main section").forEach(s => s.hidden = s.id !== "tab-" + tab);
   if (tab === "emissions") renderEmissions();
@@ -813,7 +1017,7 @@ function go(tab) { document.querySelectorAll("main section").forEach(s => s.hidd
   if (location.hash !== "#" + tab) history.replaceState(null, "", "#" + tab);
   try { localStorage.setItem("nfi-tab", tab); } catch (e) {} }
 document.querySelectorAll("nav a").forEach(a => a.addEventListener("click", e => { e.preventDefault(); go(a.dataset.tab); }));
-addEventListener("hashchange", () => { const t = location.hash.slice(1); if (["overview", "checks", "rows", "items", "emissions"].includes(t)) go(t); });
+addEventListener("hashchange", () => { const t = location.hash.slice(1); if (["overview", "checks", "rows", "items", "emissions", "process"].includes(t)) go(t); });
 $("#f-ap").innerHTML = `<option value="">All</option>` + APPROACHES.map(a => `<option value="${a}">${shortAp(a)}</option>`).join("");
 $("#f-ck").innerHTML = `<option value="">Any</option>` + D.checks.filter(c => c.rows).map(c => `<option value="${c.id}">${esc(c.title)} (${c.rows})</option>`).join("");
 const itemIds = [...new Set(R.map(r => r.item_id).filter(Boolean))].sort();
@@ -830,10 +1034,10 @@ $("#p-prev").addEventListener("click", () => { F.page--; renderRows(); });
 $("#p-next").addEventListener("click", () => { F.page++; renderRows(); });
 $("#i-q").addEventListener("input", renderItems);
 
-approachChart(); bandChart(); scatter(); tierChart(); wvsChart(); kgChart(); renderChecks(); renderRows(); renderItems(); renderEmissions();
+approachChart(); bandChart(); scatter(); tierChart(); wvsChart(); kgChart(); renderChecks(); renderRows(); renderItems(); renderEmissions(); renderProcess();
 let start = (location.hash || "").slice(1);
-if (!["overview", "checks", "rows", "items", "emissions"].includes(start)) { try { start = localStorage.getItem("nfi-tab") || "overview"; } catch (e) { start = "overview"; } }
-go(["overview", "checks", "rows", "items", "emissions"].includes(start) ? start : "overview");
+if (!["overview", "checks", "rows", "items", "emissions", "process"].includes(start)) { try { start = localStorage.getItem("nfi-tab") || "overview"; } catch (e) { start = "overview"; } }
+go(["overview", "checks", "rows", "items", "emissions", "process"].includes(start) ? start : "overview");
 </script>
 """
 

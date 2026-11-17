@@ -114,6 +114,7 @@ GOLDEN = {
     "ACHAT DES MUAC ADULTS": "MED_DEVICE", "Cabbage seed": "SEED", "Fruit seedling for SRV-04 Dists": "SEEDLING",
     "DD MREs CRP 24 HR Occidental D": "FOOD_RATION", "CO- Solid Tuna": "FOOD_FISH", "CO- Biscuit": "FOOD_BAKERY",
     "Compost Soil for Saveh workshop": "COMPOST",
+    "Microcubetas para HEMOCONTROL (caja)": "MED_DIAGNOSTIC", "Hemoglobinometros 3": "MED_DEVICE",
     "Tent, multipurpose, 25 sq.m.": "TENT_CLASSROOM", "Office, accom. unit, with accessories T": "PREFAB",
     "Boat,inflatable with accessories": "BOAT", "Morral": "SCHOOL_BAG", "Toldillos para moscos": "MOSQUITO_NET",
     "bed sheets": "BED_SHEET", "Pillow": "PILLOW", "Towel 150x100 cm": "TOWEL", "camping bed": "CAMP_BED",
@@ -188,3 +189,13 @@ def test_every_goods_line_has_a_weight():
     # last-resort weights are labelled, so they can be found and replaced
     fallback = o[o.kg_basis.fillna("").str.startswith("Unqualified Estimate: ")]
     assert (fallback.confidence_score <= 30).all()
+
+
+@pytest.mark.skipif(not os.path.exists(path("nfi_classified.csv")), reason="no pipeline output yet")
+def test_hub_supplied_goods_use_the_regional_factor():
+    o = pd.read_csv(path("nfi_classified.csv"))
+    hubs = {"United Arab Emirates", "Belgium", "Netherlands (Kingdom of the)", "Singapore", "Malaysia", "Panama"}
+    h = o[o.scope.isin(["GOODS", "KIT"]) & o.Supplier_Country_Name.isin(hubs) & o.ceda_ef_kgco2e_per_usd.notna()]
+    assert len(h) and (h.ceda_ef_geography == "UN subregion (South-Eastern Asia)").all()
+    s = o[o.scope.isin(["SERVICE", "WORKS"]) & o.Supplier_Country_Name.isin(hubs) & o.ceda_ef_kgco2e_per_usd.notna()]
+    assert not s.ceda_ef_geography.str.contains("South-Eastern").any()

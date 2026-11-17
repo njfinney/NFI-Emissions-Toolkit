@@ -6,7 +6,7 @@ TOTAL_KG,integrity,Total kg is not units x kg per unit,total_kg_est must equal u
 PROXY_TOTAL,integrity,Price-proxy total kg is not value x FX / EUR per kg,For the price proxy the quantity cancels out; a difference means the order value was counted twice.,0,0.0,0.0
 PRODUCTION_BASIS,integrity,Production basis contradicts the manufacturing category,"Weight-based needs category A or B, a production recipe and a weight; the total must equal the chosen method.",0,0.0,0.0
 CRADLE_TO_GATE_COLS,integrity,Cradle-to-gate columns do not match the chosen method,Total must equal the weight- or spend-based figure for the row's method (blank only when unallocated); unit x units must equal the total.,0,0.0,0.0
-WEIGHT_SPEND_GAP,review,Weight-based and spend-based differ more than 5x,"Usually a wrong recipe, a wrong weight or a wrong spend sector.",653,8569705.0,0.0876824615125203
+WEIGHT_SPEND_GAP,review,Weight-based and spend-based differ more than 5x,"Usually a wrong recipe, a wrong weight or a wrong spend sector.",638,5528734.0,0.05656822564696946
 COMEXT_PRICE_MISMATCH,review,WFP price per kg is 0.2-5x off Comext,"Usually the wrong CN8 within the 6-digit code, or a quantity in another unit.",327,2276164.0,0.023288976963172506
 QTY_UNIT_SUSPECT,review,Price per kg far from the item's own median,"The quantity may be in kg, m, m2 or pallets rather than pieces.",236,3624212.0,0.03708176993294567
 LUMP_SUM,review,Quantity 1 with a large value,Units were re-estimated from the item's typical unit price.,136,2615600.0,0.026761976792917388

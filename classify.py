@@ -254,6 +254,11 @@ NO_PRICE_CHECK_ITEMS = {"KIT_OTHER", "KIT_RRT", "TENT", "TENT_CLASSROOM", "TENT_
 
 # ---------------------------------------------------------------- material recipes
 
+# Trade-hub suppliers: goods and kits bought from them are assumed made mostly in Asia, so their spend factor is
+# the OpenCEDA UN-subregion average for HUB_REGION instead of the hub country's own factor
+HUB_SUPPLIERS = {"United Arab Emirates", "Belgium", "Netherlands (Kingdom of the)", "Singapore", "Malaysia", "Panama"}
+HUB_REGION = "South-Eastern Asia"
+
 TOTAL_COL = "Total_Cradle_to_Gate_Emissions_kgCO2e"
 UNIT_COL = "Unit_Cradle_to_Gate_Emissions_kgCO2e"
 
@@ -625,12 +630,16 @@ def main():
         f_c = dict(zip(efc.country_code + "|" + efc.sector_code, efc.ef_kgco2e_per_usd_2025_purchaser))
         f_r = dict(zip(efr.un_subregion + "|" + efr.sector_code, efr.ef_kgco2e_per_usd_2025_purchaser))
         efs, geos = [], []
-        for cname, code in zip(out["Supplier_Country_Name"], out["ceda_code"]):
+        for cname, code, scope in zip(out["Supplier_Country_Name"], out["ceda_code"], out["scope"]):
             code = "" if pd.isna(code) else str(code)
             if not code:
                 efs.append(None); geos.append(""); continue
             c3 = iso.get(str(cname).strip())
-            if c3 and f"{c3}|{code}" in f_c:
+            if scope in ("GOODS", "KIT") and str(cname).strip() in HUB_SUPPLIERS and f"{HUB_REGION}|{code}" in f_r:
+                # goods bought through a trade hub are mostly made elsewhere: use the regional average
+                # of the main source region, not the hub country's own factor
+                efs.append(f_r[f"{HUB_REGION}|{code}"]); geos.append(f"UN subregion ({HUB_REGION})")
+            elif c3 and f"{c3}|{code}" in f_c:
                 efs.append(f_c[f"{c3}|{code}"]); geos.append(f"Country ({c3})")
             elif c3 and f"{sub.get(c3)}|{code}" in f_r:
                 efs.append(f_r[f"{sub[c3]}|{code}"]); geos.append(f"UN subregion ({sub[c3]})")
@@ -681,7 +690,7 @@ def main():
         else:
             src.append(note)
     out["Cradle_to_Gate_Source"] = src
-    HUBS = {"United Arab Emirates", "Belgium", "Netherlands (Kingdom of the)", "Singapore", "Malaysia", "Panama"}
+    HUBS = HUB_SUPPLIERS
     hub = (out.emissions_approach == "Spend-based (OpenCEDA)") & out.scope.isin(["GOODS", "KIT"]) & \
         out.Supplier_Country_Name.isin(HUBS)
     out.loc[hub, "flags"] = (out.loc[hub, "flags"].fillna("") + "|SUPPLIER_IN_TRADE_HUB").str.strip("|")

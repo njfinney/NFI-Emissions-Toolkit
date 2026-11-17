@@ -202,6 +202,12 @@ manufacturing (plastics "incl. forming"), and neither source publishes product a
 - Factor = kg CO2e per USD, **2025 purchaser price**, chosen by supplier country, then UN subregion average,
   then Rest of World (`ceda_ef_geography` says which). `spend_kgco2e = Goods_Receipt_Value_USD x factor`.
   Use it only where `emissions_approach` is Spend-based; elsewhere it is a cross-check.
+- **Trade-hub suppliers** (UAE, Belgium, Netherlands, Singapore, Malaysia, Panama): goods and kits bought from them
+  are assumed to be made mostly in Asia, so their spend factor is the Open CEDA UN-subregion average for
+  South-Eastern Asia (`HUB_SUPPLIERS`, `HUB_REGION` in `classify.py`), not the hub country's own factor.
+  `ceda_ef_geography` shows "UN subregion (South-Eastern Asia)". Services and works keep the supplier country's
+  factor. Eastern Asia and Central/South Asia averages are higher than South-Eastern Asia; change `HUB_REGION`
+  to test them.
 - Flag `SUPPLIER_IN_TRADE_HUB`: spend-based goods bought from a re-export hub (UAE, Belgium, Netherlands,
   Malaysia, Panama, Singapore). The supplier country may not be where the goods were made.
 - In CEDA's own mapping, South Asia (India, Pakistan, Nepal, Bangladesh, Sri Lanka, Iran, Afghanistan, Bhutan)

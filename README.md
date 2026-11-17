@@ -37,6 +37,8 @@ dominant supplementary unit are used.
 
 Lines with no recorded spend, goods and kits only:
 - Categories A and B with a recipe and a weight: weight-based (`kg x composite`), noted "no spend recorded on this line".
+- Hygiene and dignity kits use the OpenCEDA sector *Sanitary paper product manufacturing* (322291): the closest
+  match for a mix of toilet paper, sanitary pads, soap and toothbrushes. Toilet preparations (325620) is too narrow.
 - Category C (complex) with a quantity: spend is imputed as quantity x the median unit price of the item's other lines
   and run through the item's OpenCEDA sector (flag `SPEND_IMPUTED`; the working is in `production_basis_note`).
 - Anything else stays blank as "No estimate available" with its reason.
